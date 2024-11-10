@@ -1,0 +1,205 @@
+{
+    "rooms":
+    [
+        {
+            "roomTitle": "Room 1",
+            "roomIntroduction": "In February 1888, the Dutch artist Vincent van Gogh (1853-1890) went to live and work in the South of France. Over the next two years, in both Arles and Saint-Rémy-de-Provence, he created an extraordinary and innovative body of work in which he transformed the people and places he encountered in life. Parks, landscapes and corners of nature became highly expressive, idealised spaces full of literary and poetic references. Similarly, Van Gogh chose individuals from his new surroundings to create portraits of symbolic types, such as 'The Poet' or 'The Lover'.\n\nThe careful planning behind Van Gogh's art extended to creating works in groups or series, and to thinking about how these might be displayed both at his home in Arles and for exhibition in Paris. By gathering a selection of these paintings—many of which are among his most famous and beloved creations—and showing them alongside his carefully developed works on paper, a less familiar Van Gogh emerges: an intellectual artist of lucid intention, deliberation, and great ambition.\n\nThis first major exhibition devoted to Van Gogh in the National Gallery's history is chief among the events celebrating the Gallery's bicentenary. It also marks 100 years since the Gallery purchased 'Sunflowers' and 'Van Gogh's Chair' for the Collection.",
+            "roomImage": null,
+            "paintings":
+            [
+                {
+                    "paintingNumber": "1",
+                    "paintingTitle": "The Lover (Portrait of Lieutenant Milliet), 1888",
+                    "paintingTime": "1888",
+                    "media": "Oil on canvas",
+                    "origin": "Krdller-Miller Museum, Otterlo, The Netherlands",
+                    "exhibitionText": "Milliet’s success with women, about which Van Gogh was both amused and envious, made the lieutenant the perfect model for The Lover. Van Gogh depicts Milliet in the dashing uniform of the Zouaves—one of the infantry units linked to North Africa—whose star and crescent regimental emblem Van Gogh reverses (for reasons unknown) in the background. The men became friends in Arles, with Van Gogh giving Milliet drawing lessons.",
+                    "image": null
+                },
+                {
+                    "paintingNumber": "2",
+                    "paintingTitle": "The Poet’s Garden (Public Garden in Arles), 1888",
+                    "paintingTime": "1888",
+                    "media": "Oil on canvas",
+                    "origin": "Private collection",
+                    "exhibitionText": "The unremarkable public garden in front of Van Gogh's home in Arles was the starting point for many views in which he used artistic licence and his imagination to create idealised worlds. He described the site in which young lovers stand in the shade of a spreading fir tree as ‘the poet’s garden’ and imagined it as a place frequented by artists and writers of the past.",
+                    "image": null
+                },
+                {
+                    "paintingNumber": "3",
+                    "paintingTitle": "The Poet (Portrait of Eugene Boch), 1888",
+                    "paintingTime": "1888",
+                    "media": "Oil on canvas",
+                    "origin": "Musée d'Orsay, Paris, bequest of Eugéne Boch, 1941",
+                    "exhibitionText": "Van Gogh had detailed plans for how he would depict a poet some time before he found Eugéne Boch (a painter) to be his model. Van Gogh felt Boch was ideal as he had a narrow face that reminded him of the 13th-century poet Dante. The deep blue sky behind the figure, intended to express a man ‘who dreams great dreams’, was essential to the symbolism of the work.",
+                    "image": null
+                }
+            ]
+        },
+        {
+            "roomTitle": "Room 2",
+            "roomIntroduction": "The Garden: Poetic Interpretations\n\nVan Gogh chose a great variety of motifs from the public garden in front of his home in Arles and later within the confines of the grounds of the hospital of Saint-Paul de Mausole at Saint-Rémy-de-Provence. In his paintings and works on paper, he selected specific viewpoints and varied his approach to style and use of colour to explore wide-ranging emotional and poetic possibilities, often with a literary or artistic source in mind. In aiming to convey meaning rather than accurately record nature, Van Gogh took a free hand in adjusting or recomposing what he observed to achieve his desired effects.",
+            "roomImage": null,
+            "paintings":
+            [
+                {
+                    "paintingNumber": "4",
+                    "paintingTitle": "The Public Garden, Arles, 1888",
+                    "paintingTime": "1888",
+                    "media": "Oil on canvas",
+                    "origin": "Private collection",
+                    "exhibitionText": "Van Gogh repeatedly drew and painted views of the gardens in Arles over the summer of 1888. On 22 October he wrote to his brother Theo (1857-1891) to say that, despite promising himself not to work, he could not resist painting the park’s autumn colours. ‘But it’s like that every day, sometimes in passing I find such beautiful things that in the end you have to try to do them anyway.’",
+                    "image": null
+                },
+                {
+                    "paintingNumber": "5",
+                    "paintingTitle": "Entrance to the Public Garden in Arles, 1888",
+                    "paintingTime": "1888",
+                    "media": "Oil on canvas",
+                    "origin": "The Phillips Collection, Washington, DC. Acquired 1930",
+                    "exhibitionText": "The gardens in Arles inspired contrasting moods. Van Gogh depicted this view of the park as an everyday scene. He described the locals as ‘something out of Daumier come to life’, a reference to the French artist famous for his caricatures. There is a comical edge to figures such as the man in worker's blue transfixed by his newspaper—possibly Van Gogh himself—and the squat woman labouring up the path.",
+                    "image": null
+                },
+                {
+                    "paintingNumber": "6",
+                    "paintingTitle": "Path in the Park, Arles, 1888",
+                    "paintingTime": "1888",
+                    "media": "Oil on canvas",
+                    "origin": "Krdller-Muller Museum, Otterlo, The Netherlands",
+                    "exhibitionText": "The park in front of the Yellow House, Van Gogh's home in Arles, was close to the town’s station. Yet in this view the groups of colourfully dressed figures moving beneath the trees appear less like passers-by than participants in a féte galante, or elegant outdoor entertainment, as imagined by the artists Jean-Antoine Watteau (1684-1721) and Adolphe Monticelli (1824-1886). Van Gogh admired both artists.",
+                    "image": null
+                },
+                {
+                    "paintingNumber": "7",
+                    "paintingTitle": "Undergrowth, 1889",
+                    "paintingTime": "1889",
+                    "media": "Oil on canvas",
+                    "origin": "Van Gogh Museum, Amsterdam (Vincent van Gogh Foundation)",
+                    "exhibitionText": "Van Gogh became fascinated by the large, neglected garden of the hospital at Saint-Rémy, to which he admitted himself in May 1889 after a series of mental breakdowns in the preceding months. In this innovative composition, he looks directly down into the dense undergrowth and ivy that climbs the nearby trees. The richly textured, swirling paint evokes the dense vegetation as well as the dappled light that breaks into open sunlight at the top of the canvas.",
+                    "image": null
+                },
+                {
+                    "paintingNumber": "8",
+                    "paintingTitle": "The Garden of the Asylum at Saint-Remy, 1889",
+                    "paintingTime": "1889",
+                    "media": "Oil on canvas",
+                    "origin": "Krdller-Muller Museum, Otterlo, The Netherlands",
+                    "exhibitionText": "This was one of the first works Van Gogh painted after arriving at the hospital at Saint-Rémy. During his first weeks, Van Gogh was not allowed beyond the hospital garden but found delight in its overgrown and intimate corners, which he associated with ‘nests of greenery for lovers’—continuing a poetic theme he had explored in the park in Arles.",
+                    "image":
+                    {
+                        "url": "placeholder.jpg",
+                        "description": "The courtyard of the Saint-Paul Cloister in Saint-Rémy. Fotocollectie Van de Poll © Dutch National Archives, 2.24.14.02 / 252-1828"
+                    }
+                },
+                {
+                    "paintingNumber": "9",
+                    "paintingTitle": "Flowering Shrubs, 1889",
+                    "paintingTime": "1889",
+                    "media": "Chalk, brush, diluted oil paint and pencil on paper",
+                    "origin": "Collection Pérez Simon, Mexico",
+                    "exhibitionText": "These close-up views of shrubs and flowers were made during Van Gogh’s first weeks at Saint-Rémy in May-June 1889. His assured, rapid application of bold dashes, hatching, dots and swirls capture the different textures of the vegetation to create richly patterned surfaces. The works on paper belong to a small and unique group in diluted paint in which Van Gogh sought to capture the vibrancy and profusion of spring growth, as well his excitement at the artistic possibilities offered by his new environment.",
+                    "image": null
+                },
+                {
+                    "paintingNumber": "10",
+                    "paintingTitle": "Tree and Bushes in the Garden of the Asylum, 1889",
+                    "paintingTime": "1889",
+                    "media": "Chalk, brush and oil paint and ink, on paper",
+                    "origin": "Van Gogh Museum, Amsterdam (Vincent van Gogh Foundation)",
+                    "exhibitionText": "These close-up views of shrubs and flowers were made during Van Gogh’s first weeks at Saint-Rémy in May-June 1889. His assured, rapid application of bold dashes, hatching, dots and swirls capture the different textures of the vegetation to create richly patterned surfaces. The works on paper belong to a small and unique group in diluted paint in which Van Gogh sought to capture the vibrancy and profusion of spring growth, as well his excitement at the artistic possibilities offered by his new environment.",
+                    "image": null
+                },
+                {
+                    "paintingNumber": "11",
+                    "paintingTitle": "A Corner of the Garden of Saint-Paul’s Hospital at Saint-Rémy, 1889",
+                    "paintingTime": "1889",
+                    "media": "Graphite and ink on paper",
+                    "origin": "Tate: Bequeathed by C. Frank Stoop 1933",
+                    "exhibitionText": "Using soft graphite and ink on pinkish paper, this ambitious drawing is the most finished of a group Van Gogh made of this corner of the hospital garden. Above a fence, a row of pines with irregular, windswept growth shelters the overgrown grass below, which is dotted with flowers such as the foreground irises. The bending gardener or labourer may have been someone Van Gogh observed, but could equally have been invented.",
+                    "image": null
+                },
+                {
+                    "paintingNumber": "12",
+                    "paintingTitle": "The Garden of the Asylum with Sawn-Off Tree, 1889",
+                    "paintingTime": "1889",
+                    "media": "Black chalk, quill and reed pen and brown ink on paper",
+                    "origin": "Private collection",
+                    "exhibitionText": "By the autumn of 1889, Van Gogh turned from his initial interpretation of the hospital’s garden as a ‘nest for lovers’ to seeing it as a site of suffering. In this drawing, related to the painted work that hangs alongside (13), Van Gogh attempted to convey this sense of anguish via the intensity of his pen strokes. These capture the dense growth of the pine trees and the rain puddles on the path.",
+                    "image": null
+                },
+                {
+                    "paintingNumber": "13",
+                    "paintingTitle": "The Park of the Hospital at Saint-Remy, 1889",
+                    "paintingTime": "1889",
+                    "media": "Oil on canvas",
+                    "origin": "Museum Folkwang, Essen",
+                    "exhibitionText": "Melancholy permeates this powerful depiction of the garden at Saint-Rémy, which is dominated by a sawn-off pine tree that had been struck by lightning. In a letter to his friend, the painter Emile Bernard (1868-1941), in November 1889, Van Gogh described the tree as a ‘dark giant—like a proud man brought low’ and detailed how he combined composition, colour and technique to convey the anxiety felt by his fellow patients at the hospital.",
+                    "image": null
+                },
+                {
+                    "paintingNumber": "14",
+                    "paintingTitle": "Hospital at Saint-Rémy, 1889",
+                    "paintingTime": "1889",
+                    "media": "Oil on canvas",
+                    "origin": "The Armand Hammer Collection, Gift of the Armand Hammer Foundation, Hammer Museum, Los Angeles",
+                    "exhibitionText": "Van Gogh chose a vertical format to give full height to the massive pine trees that dwarfed the male wing of the hospital building. The reddish soil, highly stylised tree trunks and interlocking branches overhead produce a vibrant but oppressive environment within which Van Gogh arranges a number of figures, including perhaps himself, just left of centre. The women are an invention; female patients were not allowed in this part of the grounds.",
+                    "image": null
+                },
+                {
+                    "paintingNumber": "15",
+                    "paintingTitle": "Trees in the Garden of the Asylum, 1889",
+                    "paintingTime": "1889",
+                    "media": "Oil on canvas",
+                    "origin": "Private collection",
+                    "exhibitionText": "Two curving tree trunks, cropped at the top and bottom of the picture, frame a view towards one of the terraced lawns at the edge of the hospital gardens. Van Gogh greatly admired and collected Japanese woodblock prints, in which such dramatic compositional devices were common. This work’s graphic quality is counterbalanced by his choice to paint a densely worked sky.",
+                    "image": null
+                },
+                {
+                    "paintingNumber": "16",
+                    "paintingTitle": "lris, 1890",
+                    "paintingTime": "1890",
+                    "media": "Oil on cardboard, later thinned and mounted on canvas",
+                    "origin": "National Gallery of Canada, Ottawa. Purchased 1954",
+                    "exhibitionText": "Irises grow in profusion in the South of France and there were many in the garden at Saint-Rémy. Van Gogh isolated this single plant, just coming into full bloom, almost as if he were painting a portrait. He used cardboard as a support as he was running short of canvas at the time.",
+                    "image": null
+                },
+                {
+                    "paintingNumber": "17",
+                    "paintingTitle": "Roses, 1889",
+                    "paintingTime": "1889",
+                    "media": "Oil on canvas",
+                    "origin": "The National Museum of Western Art, Tokyo. Matsukata Collection",
+                    "exhibitionText": "Van Gogh’s attention was caught by the profusion of pink blooms on this rose bush in the overgrown garden at Saint-Rémy. Manipulating thickly applied paint with a wide variety of brushstrokes, from the swirling to the spiky, he captures the differing textures of the soft rose petals amid the surrounding grasses, flowers, shrubs and weeds.",
+                    "image": null
+                },
+                {
+                    "paintingNumber": "18",
+                    "paintingTitle": "Park at Arles with a Corner of the Yellow House, 1888",
+                    "paintingTime": "1888",
+                    "media": "Quill and reed pen and brown ink on paper",
+                    "origin": "Private collection",
+                    "exhibitionText": "Van Gogh drew this meandering path in the park at Arles shortly after he began renting the Yellow House in May 1888. A corner of the house can be glimpsed in the upper right. Van Gogh felt he could probably have found a better place to rent, but wrote ‘the delightful thing about this studio is the gardens opposite’.",
+                    "image": null
+                },
+                {
+                    "paintingNumber": "19",
+                    "paintingTitle": "Garden with Weeping Tree, Arles, 1888",
+                    "paintingTime": "1888",
+                    "media": "Ink with traces of graphite on paper",
+                    "origin": "The Menil Collection, Houston",
+                    "exhibitionText": "Diagonal stripes of hay wilting on a newly mown lawn create an almost abstract pattern in this extraordinary view onto a small patch of the public gardens at Arles. A great variety of marks evoke cut grass, shadows, foliage and gravel. This drawing was made after an oil painting that Van Gogh hailed as a ‘new subject’. In this and other works on paper he explored the subject further, aiming for more ‘clarity of touch’.",
+                    "image": null
+                },
+                {
+                    "paintingNumber": "20",
+                    "paintingTitle": "Weeping Tree, 1889",
+                    "paintingTime": "1889",
+                    "media": "Reed pen and black-brown ink, with black chalk on off-white wove paper",
+                    "origin": "The Art Institute of Chicago, Gift of Tiffany and Margaret Blake, 1945.31",
+                    "exhibitionText": "‘Today I've made one of those drawings which became very dark and quite melancholic for springtime’, Van Gogh wrote to his brother in May 1889. Depicting the same tree and round bush he had often captured in drawings the previous year (18 and 19), Van Gogh created an entirely different composition. He also made more vigorous use of one of his own hand-cut reed pens and other media to give the work its emotional charge.",
+                    "image": null
+                }
+            ]
+        }
+    ]
+}
