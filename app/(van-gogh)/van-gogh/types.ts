@@ -1,3 +1,11 @@
+export interface PageProps {
+    params: Promise<{
+        roomId: string;
+        paintingId: string;
+    }>;
+}
+
+
 export interface RoomImage {
   url: string;
   description: string;
@@ -10,7 +18,9 @@ export interface PaintingImage {
 
 export interface Painting {
   type: 'painting';
+  id: string;
   paintingNumber: string;
+  roomNumber: number;
   paintingTitle: string;
   paintingTime: string;
   media: string;
@@ -20,11 +30,13 @@ export interface Painting {
 }
 
 export interface Room {
+  id: string;
   roomTitle: string;
+  roomNumber: number;
   roomIntroduction: string;
   roomImage: RoomImage;
   paintings: Painting[];
-} 
+}
 
 // Define the types for our display items
 export type RoomIntroItem = {
