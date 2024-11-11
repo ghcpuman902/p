@@ -101,7 +101,7 @@ export function ExhibitionPlan({ lang = 'en-GB' }: SVGMapProps) {
       <div className="grid gap-4 max-w-2xl mx-auto">
         {Object.entries(currentText.rooms).map(([number, description]) => (
           <div key={number} className="grid grid-cols-[4em,1fr] gap-4">
-            <div className="text-secondary font-light">Room {number}</div>
+            <div className="text-secondary font-light">{lang==="zh-TW"?"展間":"Room"} {number}</div>
             <div className="text-foreground whitespace-pre-line">{description}</div>
           </div>
         ))}

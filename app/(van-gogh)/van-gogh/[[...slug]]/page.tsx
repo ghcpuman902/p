@@ -58,10 +58,18 @@ export default async function Page({
 }: {
   params: Promise<{ slug: string[] }>
 }) {
-  const { slug } = await params
+  const { slug = [] } = await params
   let lang = 'en-GB'
   let roomId: string
   let paintingId: string | undefined
+
+  if (slug.length === 0 || (slug.length === 1 && (slug[0] === 'en-GB' || slug[0] === 'zh-TW'))) {
+    const rooms = await getRooms(slug[0] || lang)
+    if (rooms.length > 0) {
+      const langPath = (slug[0] && slug[0] !== 'en-GB') ? `/${slug[0]}` : ''
+      redirect(`/van-gogh${langPath}/${rooms[0].id}`)
+    }
+  }
 
   if (slug.length === 1) {
     [roomId] = slug
@@ -135,6 +143,7 @@ export default async function Page({
     <PaintingDetails
       currentRoom={currentRoom}
       currentPainting={currentPainting}
+      lang={lang}
     />
   )
 }

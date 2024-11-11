@@ -8,9 +8,10 @@ import painting44 from '@/public/van-gogh/p44.png'
 import painting8 from '@/public/van-gogh/p8.png'
 import room3 from '@/public/van-gogh/r3.png'
 import room6 from '@/public/van-gogh/r6.png'
+import { cn } from '@/lib/utils';
 
 // Helper function to transform text
-function transformText(text: string): JSX.Element[] {
+function transformText(text: string, lang: string): JSX.Element[] {
   const parts = text.split(/(\n\n|\n|\*\*\*\*|\*\*|\(\d{1,2}\))/g);
   return parts.map((part, index) => {
     if (part === '\n\n') return <p key={index} className="leading-7 mt-6"></p>;
@@ -19,7 +20,7 @@ function transformText(text: string): JSX.Element[] {
     if (part === '**') return <em key={index}></em>;
     const match = part.match(/\((\d{1,2})\)/);
     if (match) return (
-      <Link key={index} className="font-medium text-primary underline underline-offset-4" href={`/van-gogh/painting-${match[1]}`}>
+      <Link key={index} className="font-medium underline underline-offset-4" href={`/van-gogh/${lang}/painting-${match[1]}`}>
         ({match[1]})
       </Link>
     );
@@ -30,9 +31,10 @@ function transformText(text: string): JSX.Element[] {
 interface PaintingDetailsProps {
   currentRoom: Room;
   currentPainting?: Painting | null;
+  lang: string;
 }
 
-function PaintingDetails({ currentRoom, currentPainting }: PaintingDetailsProps) {
+function PaintingDetails({ currentRoom, currentPainting, lang }: PaintingDetailsProps) {
   // Unified structure for both room and painting display
   const displayData = currentPainting ? {
     number: currentPainting.paintingNumber,
@@ -45,7 +47,7 @@ function PaintingDetails({ currentRoom, currentPainting }: PaintingDetailsProps)
     ].filter(Boolean)
   } : {
     number: `${currentRoom.paintings[0].paintingNumber}-${currentRoom.paintings[currentRoom.paintings.length - 1].paintingNumber}`,
-    title: `Room ${currentRoom.roomNumber}: ${currentRoom.roomTitle}`,
+    title: `${lang==="zh-TW"?"展間":"Room"} ${currentRoom.roomNumber}: ${currentRoom.roomTitle}`,
     text: currentRoom.roomIntroduction,
     image: currentRoom.roomImage,
     details: []
@@ -62,17 +64,26 @@ function PaintingDetails({ currentRoom, currentPainting }: PaintingDetailsProps)
   }
 
   return (
-    <article className="max-w-2xl mx-auto p-6 space-y-6">
-      <div className="text-[100px] md:text-[120px] font-light leading-none text-[hsl(var(--secondary-invert))] tracking-tighter">
+    <article className={cn(
+      "max-w-2xl mx-auto p-6 space-y-6 transition-all duration-300",
+      !currentPainting && "bg-secondary text-white shadow-[0_0_1000px_1000px_hsl(var(--secondary))]"
+    )}>
+      <div className={cn(
+        "text-[100px] md:text-[120px] font-light leading-none",
+        !currentPainting ? "text-white" : "text-[hsl(var(--secondary-invert))]"
+      )}>
         {displayData.number}
       </div>
       
-      <h2 className="text-4xl font-light leading-tight text-[hsl(var(--secondary-invert))]">
-        {displayData.title}
+      <h2 className={cn("font-light leading-tight", 
+        lang==="zh-TW"?"pr-5 text-3xl":"text-4xl",
+        !currentPainting ? "text-white" : "text-[hsl(var(--secondary-invert))]"
+      )}>
+        {lang==="zh-TW"?(displayData.title).replace(/《|》/g, '').replace(/\s?\(/g, '（').replace(/\)\s?/g, '）'):displayData.title}
       </h2>
       
       <div className="leading-7 [&:not(:first-child)]:mt-6">
-        {transformText(displayData.text)}
+        {transformText(displayData.text, lang)}
       </div>
 
       {displayData.details.length > 0 && (
@@ -92,7 +103,10 @@ function PaintingDetails({ currentRoom, currentPainting }: PaintingDetailsProps)
             quality={100}
             className="w-full h-auto"
           />
-          <p className="text-muted-foreground mt-2">{displayData.image.description}</p>
+          <p className={cn(
+            "mt-2",
+            !currentPainting ? "text-neutral-200" : "text-muted-foreground"
+          )}>{displayData.image.description}</p>
         </div>
       )}
     </article>

@@ -1,8 +1,8 @@
 {
-    "name": "Next.js 15 Template",
-    "short_name": "Next 15",
-    "description": "A Next.js 15 template with shadcn/ui, dark theme, and PWA support",
-    "start_url": "/",
+    "name": "Van Gogh Exhibition",
+    "short_name": "Van Gogh",
+    "description": "Van Gogh Exhibition",
+    "start_url": "/van-gogh/zh-TW/room-1",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#000000",

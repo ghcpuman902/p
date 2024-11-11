@@ -214,7 +214,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
             <div className="fixed bottom-0 left-0 right-0 flex justify-between items-center bg-transparent gap-4 p-2">
                 <div className="flex gap-2">
                     <ExhibitionMapDrawer lang={currentLang} />
-                    <ChronologyDrawer />
+                    <ChronologyDrawer lang={currentLang} />
                     <Button size="icon" className="rounded-full h-12 w-12" asChild>
                         <Link href={`/van-gogh/${SUPPORTED_LANGUAGES[(SUPPORTED_LANGUAGES.indexOf(currentLang) + 1) % SUPPORTED_LANGUAGES.length]}/${currentRoomId}${currentPaintingId ? `/${currentPaintingId}` : ''}`}>
                             <Earth className="h-6 w-6" />
