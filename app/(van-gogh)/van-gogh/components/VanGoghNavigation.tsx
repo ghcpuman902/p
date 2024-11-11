@@ -194,7 +194,8 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                                             data-painting-id={painting.id}
                                             data-painting-number={painting.paintingNumber}
                                             className={cn("rounded-none w-12 h-12 flex-none mr-1", 
-                                                painting.id === currentPaintingId && "bg-secondary text-secondary-foreground hover:bg-secondary hover:text-secondary-foreground active:bg-secondary active:text-secondary-foreground")}
+                                                painting.id === currentPaintingId && "bg-secondary text-secondary-foreground hover:bg-secondary hover:text-secondary-foreground active:bg-secondary active:text-secondary-foreground",
+                                                room.id === currentRoomId && "border-b-4 border-b-secondary")}
                                             asChild
                                         >
                                             <Link href={`/van-gogh/${currentLang}/${room.id}/${painting.id}`}>
