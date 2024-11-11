@@ -2,10 +2,8 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
-// import { ModeToggle } from '@/components/mode-toggle'
 import { getRooms } from './van-gogh/utils/getRooms'
 import { VanGoghNavigation } from './van-gogh/components/VanGoghNavigation'
-import { type Room } from './van-gogh/types'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -32,15 +30,18 @@ export const viewport = {
   maximumScale: 1,
 }
 
-export default async function RootLayout({
+export default async function VanGoghLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const rooms: Room[] = await getRooms()
+  const [enRooms, zhRooms] = await Promise.all([
+    getRooms('en-GB'),
+    getRooms('zh-TW')
+  ])
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"
@@ -48,7 +49,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <VanGoghNavigation rooms={rooms}>
+          <VanGoghNavigation roomOptions={{'en-GB': enRooms, 'zh-TW': zhRooms}}>
             {children}
           </VanGoghNavigation>
         </ThemeProvider>
@@ -56,3 +57,4 @@ export default async function RootLayout({
     </html>
   )
 }
+

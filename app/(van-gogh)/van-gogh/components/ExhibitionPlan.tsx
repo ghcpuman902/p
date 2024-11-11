@@ -1,12 +1,12 @@
 import React from 'react'
 
 interface SVGMapProps {
-  language: 'english' | 'mandarin'
+  lang: 'en-GB' | 'zh-TW'
 }
 
-export function ExhibitionPlan({ language = 'english' }: SVGMapProps) {
+export function ExhibitionPlan({ lang = 'en-GB' }: SVGMapProps) {
   const texts = {
-    english: {
+    'en-GB': {
       title: 'Exhibition plan',
       exit: 'Exit',
       shop: 'Shop',
@@ -20,23 +20,24 @@ export function ExhibitionPlan({ language = 'english' }: SVGMapProps) {
         6: 'Variations on a Theme'
       }
     },
-    mandarin: {
-      title: '展览平面图',
+    'zh-TW': {
+      title: '展覽平面圖',
       exit: '出口',
-      shop: '商店',
+      shop: '商店', 
       entrance: '入口',
       rooms: {
-        1: '介绍',
-        2: '花园：\n诗意的诠释',
-        3: '黄房子：\n艺术家之家',
-        4: '蒙马茹：系列',
-        5: '装饰',
-        6: '主题变奏'
+        1: '介紹',
+        2: '花園：\n詩意的詮釋',
+        3: '黃房子：\n藝術家之家',
+        4: '蒙馬茹：系列',
+        5: '裝飾',
+        6: '主題變奏'
       }
     }
   }
 
-  const currentText = texts[language]
+  const currentText = texts[lang]
+//   console.log(lang,currentText)
 
   return (
     <div className="max-w-4xl mx-auto p-4 font-sans">

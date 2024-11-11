@@ -1,14 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Drawer } from 'vaul'
-import { clsx } from 'clsx'
 import { Clock } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-
-import { ScrollArea } from "@/components/ui/scroll-area"
-// import { Card, CardContent } from "@/components/ui/card"
-// import { Link } from "lucide-react"
+import { SharedDrawer } from './SharedDrawer'
 
 const chronologyData = [
     {
@@ -174,34 +168,11 @@ const chronologyData = [
     }
 ]
 
-const snapPoints = ['340px', 1]
 
 export function ChronologyDrawer() {
-    const [snap, setSnap] = useState<number | string | null>(snapPoints[0])
-    const [isOpen, setIsOpen] = useState(false)
     const [activeSection, setActiveSection] = useState('')
 
-    const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-        e.preventDefault()
-        const id = e.currentTarget.getAttribute('href')?.replace('#', '')
-        if (!id) return
-
-        const element = document.getElementById(id)
-        if (!element) return
-
-        const drawerContent = document.querySelector('.drawer-content')
-        if (!drawerContent) return
-
-        // Scroll the element to be 100px from the top of the drawer
-        drawerContent.scrollTo({
-            top: element.offsetTop - 100,
-            behavior: 'smooth'
-        })
-    }
-
     useEffect(() => {
-        if (!isOpen) return
-
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
@@ -212,116 +183,100 @@ export function ChronologyDrawer() {
             },
             { 
                 threshold: 0,
-                rootMargin: '-100px 0px -50%', // Adjust the detection area
+                rootMargin: '-100px 0px -50%',
                 root: document.querySelector('.drawer-content')
             }
         )
 
-        setTimeout(() => {
-            document.querySelectorAll('h2, h3').forEach((heading) => observer.observe(heading))
-        }, 100)
+        const onDrawerStateChange = (event: CustomEvent<boolean>) => {
+            if (event.detail) { // if drawer is open
+                setTimeout(() => {
+                    document.querySelectorAll('h2, h3').forEach((heading) => observer.observe(heading))
+                }, 100)
+            }
+        }
 
-        return () => observer.disconnect()
-    }, [isOpen])
+        document.addEventListener('drawerStateChange', onDrawerStateChange as EventListener)
+
+        return () => {
+            observer.disconnect()
+            document.removeEventListener('drawerStateChange', onDrawerStateChange as EventListener)
+        }
+    }, [])
 
     return (
-        <Drawer.Root 
-            snapPoints={snapPoints} 
-            activeSnapPoint={snap} 
-            setActiveSnapPoint={setSnap} 
-            modal={true}
-            onOpenChange={setIsOpen}
+        <SharedDrawer 
+            title="Chronology" 
+            icon={Clock} 
         >
-            <Drawer.Trigger asChild>
-                <Button size="icon" className="rounded-full h-12 w-12">
-                    <Clock className="h-6 w-6" />
-                </Button>
-            </Drawer.Trigger>
-            <Drawer.Overlay className="fixed inset-0 bg-black/40" />
-            <Drawer.Portal>
-                <Drawer.Content
-                    className="fixed flex flex-col bg-white dark:bg-zinc-950 border border-gray-400 dark:border-zinc-600 border-b-none rounded-t-[20px] bottom-0 left-0 right-0 h-full max-h-[97%] mx-[-1px] drawer-content"
-                >
-                    <div className={clsx('flex flex-col max-w-md mx-auto w-full p-4 pt-5', {
-                        'overflow-y-auto': snap === 1,
-                        'overflow-hidden': snap !== 1,
-                    })}>
-                        <Drawer.Title className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl mb-4">Chronology</Drawer.Title>
-                        <div className="flex flex-col md:flex-row justify-between mx-auto">
-                            <main className="w-full">
-                                {chronologyData.map((year) => (
-                                    <section key={year.id} className="mb-8">
-                                        <h2 id={year.id} className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
-                                            {year.title}
-                                        </h2>
-                                        {Array.isArray(year.content) ? (
-                                            year.content.map((event) => (
-                                                <div key={event.id} className="mb-4">
-                                                    <h3 id={event.id} className="text-2xl font-medium mb-2">
-                                                        {event.title}
-                                                    </h3>
-                                                    <p>{event.content}</p>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <p>{year.content}</p>
-                                        )}
-                                    </section>
-                                ))}
-                                <p className="mt-8 text-sm text-gray-600">
-                                    {`For more information about Van Gogh's life, as well as all his letters, visit `}
-                                    <a href="https://vangoghletters.org" className="text-blue-600 hover:underline">
-                                        vangoghletters.org
-                                    </a>
-                                    . All letter quotes in the exhibition are taken from this source.
-                                </p>
-                            </main>
-                            <nav className="w-full md:w-1/3 md:sticky md:top-8 self-start" aria-label="Table of Contents">
-                                <h2 className="scroll-m-20 text-2xl font-semibold mb-4 sr-only">Table of Contents</h2>
-                                <ScrollArea className="h-[calc(100vh-4rem)]">
-                                    <ul className="space-y-2">
-                                        {chronologyData.map((year) => (
-                                            <li key={year.id}>
+            <div className="flex flex-col md:flex-row justify-between mx-auto h-full overflow-y-auto p-4 pt-4">
+                <main className="w-full md:pr-4">
+                    {chronologyData.map((year) => (
+                        <section key={year.id} className="mb-8">
+                            <h2 id={year.id} className="scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0">
+                                {year.title}
+                            </h2>
+                            {Array.isArray(year.content) ? (
+                                year.content.map((event) => (
+                                    <div key={event.id} className="mb-4">
+                                        <h3 id={event.id} className="text-xl font-medium mb-2">
+                                            {event.title}
+                                        </h3>
+                                        <p>{event.content}</p>
+                                    </div>
+                                ))
+                            ) : (
+                                <p>{year.content}</p>
+                            )}
+                        </section>
+                    ))}
+                    <p className="mt-8 mb-8 text-sm text-gray-600">
+                        {`For more information about Van Gogh's life, as well as all his letters, visit `}
+                        <a href="https://vangoghletters.org" className="text-blue-600 hover:underline">
+                            vangoghletters.org
+                        </a>
+                        . All letter quotes in the exhibition are taken from this source.
+                    </p>
+                </main>
+                <nav className="hidden md:block w-1/3 md:sticky md:top-0 self-start" aria-label="Table of Contents">
+                    <h2 className="scroll-m-20 text-2xl font-semibold mb-4 sr-only">Table of Contents</h2>
+                    <ul className="space-y-2">
+                        {chronologyData.map((year) => (
+                            <li key={year.id}>
+                                <a
+                                    href={`#${year.id}`}
+                                    className={`block py-1 ${
+                                        activeSection === year.id ||
+                                        (Array.isArray(year.content) && year.content.some((event) => event.id === activeSection))
+                                            ? 'text-blue-600 font-semibold'
+                                            : 'text-gray-600 hover:text-blue-600'
+                                    }`}
+                                >
+                                    {year.title}
+                                </a>
+                                {Array.isArray(year.content) && (
+                                    <ul className="ml-4 space-y-1">
+                                        {year.content.map((event) => (
+                                            <li key={event.id}>
                                                 <a
-                                                    href={`#${year.id}`}
-                                                    onClick={handleLinkClick}
+                                                    href={`#${event.id}`}
                                                     className={`block py-1 ${
-                                                        activeSection === year.id ||
-                                                        (Array.isArray(year.content) && year.content.some((event) => event.id === activeSection))
-                                                            ? 'text-blue-600 font-semibold'
+                                                        activeSection === event.id 
+                                                            ? 'text-blue-600 font-semibold' 
                                                             : 'text-gray-600 hover:text-blue-600'
                                                     }`}
                                                 >
-                                                    {year.title}
+                                                    {event.title}
                                                 </a>
-                                                {Array.isArray(year.content) && (
-                                                    <ul className="ml-4 space-y-1">
-                                                        {year.content.map((event) => (
-                                                            <li key={event.id}>
-                                                                <a
-                                                                    href={`#${event.id}`}
-                                                                    onClick={handleLinkClick}
-                                                                    className={`block py-1 ${
-                                                                        activeSection === event.id 
-                                                                            ? 'text-blue-600 font-semibold' 
-                                                                            : 'text-gray-600 hover:text-blue-600'
-                                                                    }`}
-                                                                >
-                                                                    {event.title}
-                                                                </a>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                )}
                                             </li>
                                         ))}
                                     </ul>
-                                </ScrollArea>
-                            </nav>
-                        </div>
-                    </div>
-                </Drawer.Content>
-            </Drawer.Portal>
-        </Drawer.Root>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
+            </div>
+        </SharedDrawer>
     )
 } 

@@ -1,34 +1,52 @@
 'use client'
 
 import React, { useRef, useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSelectedLayoutSegments } from 'next/navigation'
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, Settings } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Earth } from 'lucide-react'
 import { type Room, type Painting } from '../types'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { ExhibitionMapDrawer } from './ExhibitionMapDrawer'
 import { ChronologyDrawer } from './ChronologyDrawer'
 
+const SUPPORTED_LANGUAGES = ['en-GB', 'zh-TW'] as const
+type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number]
+const DEFAULT_LANGUAGE = SUPPORTED_LANGUAGES[0]
+
 interface VanGoghNavigationProps {
-    rooms: Room[]
+    roomOptions: {
+        [K in SupportedLanguage]: Room[]
+    }
     children: React.ReactNode
 }
 
-export function VanGoghNavigation({ rooms, children }: VanGoghNavigationProps & { children: React.ReactNode }) {
+export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationProps) {
     const pathname = usePathname()
+    const segments = useSelectedLayoutSegments()
+    const lang = segments[1] && SUPPORTED_LANGUAGES.includes(segments[1].split('/')[0] as SupportedLanguage) 
+        ? (segments[1].split('/')[0] as SupportedLanguage) 
+        : DEFAULT_LANGUAGE
+    const rooms = roomOptions[lang]
     const roomsContainerRef = useRef<HTMLDivElement>(null)
     const paintingsContainerRef = useRef<HTMLDivElement>(null)
 
     // More defensive URL parsing
     const pathParts = pathname.split('van-gogh/')[1]?.split('/') || []
-    let [currentRoomId, currentPaintingId] = pathParts
+    let [currentLang, currentRoomId, currentPaintingId] = pathParts as [SupportedLanguage, string, string]
+
+    // Handle cases where language is not in the URL
+    if (!SUPPORTED_LANGUAGES.includes(currentLang as SupportedLanguage)) {
+        currentPaintingId = currentRoomId
+        currentRoomId = currentLang
+        currentLang = lang as SupportedLanguage
+    }
 
     // Only attempt to process valid room/painting IDs
     if (currentRoomId?.startsWith('painting-')) {
         const paintingNumber = currentRoomId.split('-')[1]
-        const painting = rooms.flatMap(room => room.paintings)
-            .find(painting => painting.paintingNumber === paintingNumber)
+        const painting = rooms.flatMap((room: Room) => room.paintings)
+            .find((painting: Painting) => painting.paintingNumber === paintingNumber)
         
         if (painting) {
             currentRoomId = `room-${painting.roomNumber}`
@@ -37,9 +55,9 @@ export function VanGoghNavigation({ rooms, children }: VanGoghNavigationProps & 
     }
 
     // Validate that currentRoomId exists in rooms
-    const isValidRoom = rooms.some(room => room.id === currentRoomId)
-    const currentRoom = rooms.find(room => room.id === currentRoomId)
-    const isValidPainting = currentRoom?.paintings.some(painting => painting.id === currentPaintingId)
+    const isValidRoom = rooms.some((room: Room) => room.id === currentRoomId)
+    const currentRoom = rooms.find((room: Room) => room.id === currentRoomId)
+    const isValidPainting = currentRoom?.paintings.some((painting: Painting) => painting.id === currentPaintingId)
 
     // If invalid, don't highlight anything but still render the navigation
     if (!isValidRoom) {
@@ -87,14 +105,14 @@ export function VanGoghNavigation({ rooms, children }: VanGoghNavigationProps & 
             const currentPaintingIndex = currentRoom.paintings.findIndex(painting => painting.id === currentPaintingId);
             if (currentPaintingIndex > 0) {
                 const previousPainting = currentRoom.paintings[currentPaintingIndex - 1];
-                return `/van-gogh/${currentRoomId}/${previousPainting.id}`;
+                return `/van-gogh/${currentLang}/${currentRoomId}/${previousPainting.id}`;
             } else {
-                return `/van-gogh/${currentRoomId}`;
+                return `/van-gogh/${currentLang}/${currentRoomId}`;
             }
         } else if (currentRoomIndex > 0) {
             const previousRoom = rooms[currentRoomIndex - 1];
             const lastPainting = previousRoom.paintings[previousRoom.paintings.length - 1];
-            return `/van-gogh/${previousRoom.id}/${lastPainting.id}`;
+            return `/van-gogh/${currentLang}/${previousRoom.id}/${lastPainting.id}`;
         }
         return null;
     }
@@ -113,10 +131,10 @@ export function VanGoghNavigation({ rooms, children }: VanGoghNavigationProps & 
 
         if (currentPaintingIndex < currentRoom.paintings.length - 1) {
             const nextPainting = currentRoom.paintings[currentPaintingIndex + 1];
-            return `/van-gogh/${currentRoomId}/${nextPainting.id}`;
+            return `/van-gogh/${currentLang}/${currentRoomId}/${nextPainting.id}`;
         } else if (currentRoomIndex < rooms.length - 1) {
             const nextRoom = rooms[currentRoomIndex + 1];
-            return `/van-gogh/${nextRoom.id}`;
+            return `/van-gogh/${currentLang}/${nextRoom.id}`;
         }
         return null;
     }
@@ -144,7 +162,7 @@ export function VanGoghNavigation({ rooms, children }: VanGoghNavigationProps & 
                                         className={cn("rounded-none whitespace-nowrap flex-none mr-1 h-12", room.id === currentRoomId && "bg-secondary text-secondary-foreground hover:bg-secondary hover:text-secondary-foreground active:bg-secondary active:text-secondary-foreground")}
                                         asChild
                                     >
-                                        <Link href={`/van-gogh/${room.id}`}>
+                                        <Link href={`/van-gogh/${currentLang}/${room.id}`}>
                                             {`${room.roomNumber}: ${room.roomTitle}`}
                                         </Link>
                                     </Button>
@@ -172,7 +190,7 @@ export function VanGoghNavigation({ rooms, children }: VanGoghNavigationProps & 
                                             className={cn("rounded-none w-12 h-12 flex-none mr-1", painting.id === currentPaintingId && "bg-secondary text-secondary-foreground hover:bg-secondary hover:text-secondary-foreground active:bg-secondary active:text-secondary-foreground")}
                                             asChild
                                         >
-                                            <Link href={`/van-gogh/${room.id}/${painting.id}`}>
+                                            <Link href={`/van-gogh/${currentLang}/${room.id}/${painting.id}`}>
                                                 {painting.paintingNumber}
                                             </Link>
                                         </Button>
@@ -195,30 +213,34 @@ export function VanGoghNavigation({ rooms, children }: VanGoghNavigationProps & 
 
             <div className="fixed bottom-0 left-0 right-0 flex justify-between items-center bg-transparent gap-4 p-2">
                 <div className="flex gap-2">
-                    <ExhibitionMapDrawer />
+                    <ExhibitionMapDrawer lang={currentLang} />
                     <ChronologyDrawer />
-                    <Button size="icon" className="rounded-full h-12 w-12">
-                        <Settings className="h-6 w-6" />
+                    <Button size="icon" className="rounded-full h-12 w-12" asChild>
+                        <Link href={`/van-gogh/${SUPPORTED_LANGUAGES[(SUPPORTED_LANGUAGES.indexOf(currentLang) + 1) % SUPPORTED_LANGUAGES.length]}/${currentRoomId}${currentPaintingId ? `/${currentPaintingId}` : ''}`}>
+                            <Earth className="h-6 w-6" />
+                        </Link>
                     </Button>
                 </div>
                 <div className="flex">
-                    {getPreviousUrl() && (
-                        <Link 
-                            href={getPreviousUrl() ?? '#'} 
-                            className="rounded-l-full h-12 flex items-center justify-center border-r border-border/50 px-4 bg-primary text-primary-foreground hover:bg-primary/90"
-                        >
+                    <Button 
+                        className="rounded-l-full h-12 flex items-center justify-center border-r border-border/50 px-4 bg-primary text-primary-foreground hover:bg-primary/90" 
+                        asChild
+                        disabled={!getPreviousUrl()}
+                    >
+                        <Link href={getPreviousUrl() ?? '#'}>
                             <ChevronLeft className="h-6 w-6" />
                         </Link>
-                    )}
-                    {getNextUrl() && (
-                        <Link 
-                            href={getNextUrl() ?? '#'}
-                            className="rounded-r-full h-12 flex items-center justify-center px-4 bg-primary text-primary-foreground hover:bg-primary/90"
-                        >
-                            <span className="mr-2">Next</span>
+                    </Button>
+                    <Button 
+                        className="rounded-r-full h-12 flex items-center justify-center px-4 bg-primary text-primary-foreground hover:bg-primary/90" 
+                        asChild
+                        disabled={!getNextUrl()}
+                    >
+                        <Link href={getNextUrl() ?? '#'}>
+                            <span className="mr-2">{currentLang === 'zh-TW' ? '下一個' : 'Next'}</span>
                             <ChevronRight className="h-6 w-6" />
                         </Link>
-                    )}
+                    </Button>
                 </div>
             </div>
         </>
