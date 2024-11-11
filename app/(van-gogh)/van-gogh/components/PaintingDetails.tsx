@@ -1,6 +1,13 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Room, Painting } from '../types';
+import painting21 from '@/public/van-gogh/p21.png'
+import painting27 from '@/public/van-gogh/p27.png'
+import painting33 from '@/public/van-gogh/p33.png'
+import painting44 from '@/public/van-gogh/p44.png'
+import painting8 from '@/public/van-gogh/p8.png'
+import room3 from '@/public/van-gogh/r3.png'
+import room6 from '@/public/van-gogh/r6.png'
 
 // Helper function to transform text
 function transformText(text: string): JSX.Element[] {
@@ -44,6 +51,16 @@ function PaintingDetails({ currentRoom, currentPainting }: PaintingDetailsProps)
     details: []
   };
 
+  const paintingImages = {
+    'p21.png': painting21,
+    'p27.png': painting27,
+    'p33.png': painting33,
+    'p44.png': painting44,
+    'p8.png': painting8,
+    'r3.png': room3,
+    'r6.png': room6
+  }
+
   return (
     <article className="max-w-2xl mx-auto p-6 space-y-6">
       <div className="text-[100px] md:text-[120px] font-light leading-none text-[hsl(var(--secondary-invert))] tracking-tighter">
@@ -69,12 +86,13 @@ function PaintingDetails({ currentRoom, currentPainting }: PaintingDetailsProps)
       {displayData.image && (
         <div className="flex flex-col items-center my-4">
           <Image 
-            src={`/van-gogh/${displayData.image.url}`} 
+            src={paintingImages[displayData.image.url as keyof typeof paintingImages] || `/van-gogh/${displayData.image.url}`}
             alt={displayData.image.description}
-            width={800}
-            height={600} 
+            priority
+            quality={100}
+            className="w-full h-auto"
           />
-          <p className="text-muted-foreground">{displayData.image.description}</p>
+          <p className="text-muted-foreground mt-2">{displayData.image.description}</p>
         </div>
       )}
     </article>
