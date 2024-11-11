@@ -2,7 +2,7 @@ import { promises as fs } from 'fs'
 import { Painting, Room } from '../types'
 
 export async function getRooms(lang: string = 'en-GB'): Promise<Room[]> {
-  const fileName = `${lang.toLowerCase()}_rooms.json`
+  const fileName = `${lang.slice(0,2).toLowerCase()}-${lang.slice(3).toUpperCase()}_rooms.json`
   const filePath = `${process.cwd()}/public/van-gogh/${fileName}`
 
   try {
