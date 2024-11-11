@@ -74,14 +74,19 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
         activeRoom?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
 
         if (!activePainting && activeRoom) {
-            // Scroll to the first painting of the active room if no painting is active
-            const firstPainting = document.querySelector(`[data-painting-id="${rooms.find(r => r.id === activeRoom.getAttribute('data-room-id'))?.paintings[0].id}"]`);
-            if (firstPainting) {
-                const previousSeparator = firstPainting.previousElementSibling
-                if (previousSeparator?.classList.contains('separator')) {
-                    previousSeparator.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
-                } else {
-                    firstPainting.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
+            // Find the active room's data
+            const activeRoomData = rooms.find(r => r.id === activeRoom.getAttribute('data-room-id'))
+            
+            // Only try to scroll to first painting if the room has paintings
+            if (activeRoomData?.paintings.length) {
+                const firstPainting = document.querySelector(`[data-painting-id="${activeRoomData.paintings[0].id}"]`);
+                if (firstPainting) {
+                    const previousSeparator = firstPainting.previousElementSibling
+                    if (previousSeparator?.classList.contains('separator')) {
+                        previousSeparator.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
+                    } else {
+                        firstPainting.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
+                    }
                 }
             }
         } else if (activePainting) {
@@ -159,11 +164,12 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                                         data-room-active={room.id === currentRoomId}
                                         data-room-id={room.id}
                                         data-room-number={room.roomNumber}
-                                        className={cn("rounded-none whitespace-nowrap flex-none mr-1 h-12", room.id === currentRoomId && "bg-secondary text-secondary-foreground hover:bg-secondary hover:text-secondary-foreground active:bg-secondary active:text-secondary-foreground")}
+                                        className={cn("rounded-none whitespace-nowrap flex-none mr-1 h-12", 
+                                            room.id === currentRoomId && "bg-secondary text-secondary-foreground hover:bg-secondary hover:text-secondary-foreground active:bg-secondary active:text-secondary-foreground")}
                                         asChild
                                     >
                                         <Link href={`/van-gogh/${currentLang}/${room.id}`}>
-                                            {`${room.roomNumber}: ${room.roomTitle}`}
+                                            {room.paintings.length ? `${room.roomNumber}: ${room.roomTitle}` : `${lang === 'zh-TW' ? '結語' : 'End'}`}
                                         </Link>
                                     </Button>
                                 ))}
@@ -181,21 +187,22 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                         >
                             <div className="flex flex-nowrap items-center">
                                 {rooms.flatMap((room, roomIndex) => [
-                                    ...room.paintings.map((painting: Painting) => (
+                                    ...(room.paintings.length ? room.paintings.map((painting: Painting) => (
                                         <Button
                                             key={painting.id}
                                             data-painting-active={painting.id === currentPaintingId}
                                             data-painting-id={painting.id}
                                             data-painting-number={painting.paintingNumber}
-                                            className={cn("rounded-none w-12 h-12 flex-none mr-1", painting.id === currentPaintingId && "bg-secondary text-secondary-foreground hover:bg-secondary hover:text-secondary-foreground active:bg-secondary active:text-secondary-foreground")}
+                                            className={cn("rounded-none w-12 h-12 flex-none mr-1", 
+                                                painting.id === currentPaintingId && "bg-secondary text-secondary-foreground hover:bg-secondary hover:text-secondary-foreground active:bg-secondary active:text-secondary-foreground")}
                                             asChild
                                         >
                                             <Link href={`/van-gogh/${currentLang}/${room.id}/${painting.id}`}>
                                                 {painting.paintingNumber}
                                             </Link>
                                         </Button>
-                                    )),
-                                    roomIndex < rooms.length - 1 ? (
+                                    )) : []),
+                                    roomIndex < rooms.length - 1 && rooms[roomIndex + 1].paintings.length ? (
                                         <div
                                             key={`separator-${room.roomTitle}`}
                                             className="h-6 w-[10px] bg-neutral-400 mr-1 rounded-full separator"

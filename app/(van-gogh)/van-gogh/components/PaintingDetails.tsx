@@ -46,8 +46,12 @@ function PaintingDetails({ currentRoom, currentPainting, lang }: PaintingDetails
       currentPainting.origin
     ].filter(Boolean)
   } : {
-    number: `${currentRoom.paintings[0].paintingNumber}-${currentRoom.paintings[currentRoom.paintings.length - 1].paintingNumber}`,
-    title: `${lang==="zh-TW"?"展間":"Room"} ${currentRoom.roomNumber}: ${currentRoom.roomTitle}`,
+    number: currentRoom.paintings.length ? 
+      `${currentRoom.paintings[0].paintingNumber}-${currentRoom.paintings[currentRoom.paintings.length - 1].paintingNumber}` : 
+      `${lang==="zh-TW"?"結語":"End"}`,
+    title: currentRoom.paintings.length ? 
+      `${lang==="zh-TW"?"展間":"Room"} ${currentRoom.roomNumber}: ${currentRoom.roomTitle}` :
+      `${currentRoom.roomTitle}`,
     text: currentRoom.roomIntroduction,
     image: currentRoom.roomImage,
     details: []
@@ -82,18 +86,6 @@ function PaintingDetails({ currentRoom, currentPainting, lang }: PaintingDetails
         {lang==="zh-TW"?(displayData.title).replace(/《|》/g, '').replace(/\s?\(/g, '（').replace(/\)\s?/g, '）'):displayData.title}
       </h2>
       
-      <div className="leading-7 [&:not(:first-child)]:mt-6">
-        {transformText(displayData.text, lang)}
-      </div>
-
-      {displayData.details.length > 0 && (
-        <div className="space-y-1">
-          {displayData.details.map((detail, index) => (
-            <p key={index} className="text-gray-500">{detail}</p>
-          ))}
-        </div>
-      )}
-
       {displayData.image && (
         <div className="flex flex-col items-center my-4">
           <Image 
@@ -109,6 +101,19 @@ function PaintingDetails({ currentRoom, currentPainting, lang }: PaintingDetails
           )}>{displayData.image.description}</p>
         </div>
       )}
+      
+      <div className="leading-7 [&:not(:first-child)]:mt-6">
+        {transformText(displayData.text, lang)}
+      </div>
+
+      {displayData.details.length > 0 && (
+        <div className="space-y-1">
+          {displayData.details.map((detail, index) => (
+            <p key={index} className="text-gray-500">{detail}</p>
+          ))}
+        </div>
+      )}
+
     </article>
   );
 }

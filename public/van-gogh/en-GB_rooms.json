@@ -1,18 +1,16 @@
 {
-    "rooms":
-    [
+    "rooms": [
         {
             "roomTitle": "Introduction",
             "roomIntroduction": "In February 1888, the Dutch artist Vincent van Gogh (1853-1890) went to live and work in the South of France. Over the next two years, in both Arles and Saint-Rémy-de-Provence, he created an extraordinary and innovative body of work in which he transformed the people and places he encountered in life. Parks, landscapes and corners of nature became highly expressive, idealised spaces full of literary and poetic references. Similarly, Van Gogh chose individuals from his new surroundings to create portraits of symbolic types, such as 'The Poet' or 'The Lover'.\n\nThe careful planning behind Van Gogh's art extended to creating works in groups or series, and to thinking about how these might be displayed both at his home in Arles and for exhibition in Paris. By gathering a selection of these paintings—many of which are among his most famous and beloved creations—and showing them alongside his carefully developed works on paper, a less familiar Van Gogh emerges: an intellectual artist of lucid intention, deliberation, and great ambition.\n\nThis first major exhibition devoted to Van Gogh in the National Gallery's history is chief among the events celebrating the Gallery's bicentenary. It also marks 100 years since the Gallery purchased 'Sunflowers' and 'Van Gogh's Chair' for the Collection.",
             "roomImage": null,
-            "paintings":
-            [
+            "paintings": [
                 {
                     "paintingNumber": "1",
                     "paintingTitle": "The Lover (Portrait of Lieutenant Milliet), 1888",
                     "paintingTime": "1888",
                     "media": "Oil on canvas",
-                    "origin": "Krdller-Miller Museum, Otterlo, The Netherlands",
+                    "origin": "Kröller-Müller Museum, Otterlo, The Netherlands",
                     "exhibitionText": "Milliet’s success with women, about which Van Gogh was both amused and envious, made the lieutenant the perfect model for The Lover. Van Gogh depicts Milliet in the dashing uniform of the Zouaves—one of the infantry units linked to North Africa—whose star and crescent regimental emblem Van Gogh reverses (for reasons unknown) in the background. The men became friends in Arles, with Van Gogh giving Milliet drawing lessons.",
                     "image": null
                 },
@@ -40,8 +38,7 @@
             "roomTitle": "The Garden: Poetic Interpretations",
             "roomIntroduction": "The Garden: Poetic Interpretations\n\nVan Gogh chose a great variety of motifs from the public garden in front of his home in Arles and later within the confines of the grounds of the hospital of Saint-Paul de Mausole at Saint-Rémy-de-Provence. In his paintings and works on paper, he selected specific viewpoints and varied his approach to style and use of colour to explore wide-ranging emotional and poetic possibilities, often with a literary or artistic source in mind. In aiming to convey meaning rather than accurately record nature, Van Gogh took a free hand in adjusting or recomposing what he observed to achieve his desired effects.",
             "roomImage": null,
-            "paintings":
-            [
+            "paintings": [
                 {
                     "paintingNumber": "4",
                     "paintingTitle": "The Public Garden, Arles, 1888",
@@ -65,7 +62,7 @@
                     "paintingTitle": "Path in the Park, Arles, 1888",
                     "paintingTime": "1888",
                     "media": "Oil on canvas",
-                    "origin": "Krdller-Muller Museum, Otterlo, The Netherlands",
+                    "origin": "Kröller-Müller Museum, Otterlo, The Netherlands",
                     "exhibitionText": "The park in front of the Yellow House, Van Gogh's home in Arles, was close to the town’s station. Yet in this view the groups of colourfully dressed figures moving beneath the trees appear less like passers-by than participants in a féte galante, or elegant outdoor entertainment, as imagined by the artists Jean-Antoine Watteau (1684-1721) and Adolphe Monticelli (1824-1886). Van Gogh admired both artists.",
                     "image": null
                 },
@@ -83,10 +80,9 @@
                     "paintingTitle": "The Garden of the Asylum at Saint-Remy, 1889",
                     "paintingTime": "1889",
                     "media": "Oil on canvas",
-                    "origin": "Krdller-Muller Museum, Otterlo, The Netherlands",
+                    "origin": "Kröller-Müller Museum, Otterlo, The Netherlands",
                     "exhibitionText": "This was one of the first works Van Gogh painted after arriving at the hospital at Saint-Rémy. During his first weeks, Van Gogh was not allowed beyond the hospital garden but found delight in its overgrown and intimate corners, which he associated with ‘nests of greenery for lovers’—continuing a poetic theme he had explored in the park in Arles.",
-                    "image":
-                    {
+                    "image": {
                         "url": "p8.png",
                         "description": "The courtyard of the Saint-Paul Cloister in Saint-Rémy. Fotocollectie Van de Poll © Dutch National Archives, 2.24.14.02 / 252-1828"
                     }
@@ -205,11 +201,10 @@
             "roomTitle": "The Yellow House: An Artist's Home",
             "roomIntroduction": "The Yellow House: An Artist's Home\n\nInitially Van Gogh only used the Yellow House, which he rented in early May 1888, as a studio because it needed both renovation and furniture. By September he moved in and had bold plans to turn the modest house into an 'artist's home' and a communal 'studio of the South' in which his artist friends from Paris could join him to work. He devised a decoration for the house that included his major paintings. This then evolved into carefully conceived ideas about how to present his art to the public. The works in this gallery were part of his ambitions.",
             "roomImage": {
-            	"url": "r3.png",
-            	"description": "The Yellow House (right) on the Place Lamartine at Arles\n© Album / Alamy Stock Photo"
+                "url": "r3.png",
+                "description": "The Yellow House (right) on the Place Lamartine at Arles\n© Album / Alamy Stock Photo"
             },
-            "paintings":
-            [
+            "paintings": [
                 {
                     "paintingNumber": "21",
                     "paintingTitle": "Van Gogh's Chair",
@@ -217,8 +212,7 @@
                     "media": "Oil on canvas",
                     "origin": "The National Gallery, London. Bought, Courtauld Fund, 1924",
                     "exhibitionText": "A rustic chair on which Van Gogh has placed his pipe and tobacco stands as the artist's surrogate self portrait, while the terracotta tiles and limewashed walls give a glimpse of the Yellow House’s simple interior. Painted in late 1888, when the painter Paul Gauguin had come to stay in Arles, it is one of a pair — the other flatteringly representing Gauguin via an armchair with two novels and a candle on its seat.",
-                    "image":
-                    {
+                    "image": {
                         "url": "p21.png",
                         "description": "Van Gogh's Chair with a pipe and tobacco."
                     }
@@ -265,7 +259,7 @@
                     "paintingTime": "1889",
                     "media": "Oil on canvas",
                     "origin": "National Gallery of Art, Washington, DC. Collection of Mr. and Mrs. John Hay Whitney, 1998.74.5",
-                    "exhibitionText": "Holding up his palette and brushes, Van Gogh reaffirms his identity as an artist. He painted the work ‘on the first day | got up’ following a long recovery from the mental breakdown he experienced in July/August 1889. Although noting that he was ‘thin’ and ‘pale as the devil’, he was pleased with the contrast of blue with his ‘whitish’ face and ‘yellow hair’. The image appeared in his imagined display of paintings in The Bedroom shortly after.",
+                    "exhibitionText": "Holding up his palette and brushes, Van Gogh reaffirms his identity as an artist. He painted the work ‘on the first day I got up’ following a long recovery from the mental breakdown he experienced in July/August 1889. Although noting that he was ‘thin’ and ‘pale as the devil’, he was pleased with the contrast of blue with his ‘whitish’ face and ‘yellow hair’. The image appeared in his imagined display of paintings in The Bedroom shortly after.",
                     "image": null
                 },
                 {
@@ -275,8 +269,7 @@
                     "media": "Oil on canvas",
                     "origin": "Basil and Elise Goulandris Foundation Collection, Athens",
                     "exhibitionText": "The colour of the autumn trees in a lane lined with old Roman and medieval sarcophagi captivated Van Gogh and prompted this view of Arles, in which he imagined a pair of lovers taking a promenade. It also provided a perfect balancing of opposites, which the artist felt created harmony in a picture. Here the remnants of the ancient world are contrasted with modern factories glimpsed between the trees, while young lovers walk among the dead.",
-                    "image":
-                    {
+                    "image": {
                         "url": "p27.png",
                         "description": "The Tombs at Alyscamps, Arles\n© Ganne (fonds) / Centre des Monuments Nationaux"
                     }
@@ -286,7 +279,7 @@
                     "paintingTitle": "The Green Vineyard",
                     "paintingTime": "1888",
                     "media": "Oil on canvas",
-                    "origin": "Kroller-Muller Museum, Otterlo, The Netherlands",
+                    "origin": "Kröller-Müller Museum, Otterlo, The Netherlands",
                     "exhibitionText": "Painted mostly outdoors, this landscape is remarkable for its impasto and rich colour. Van Gogh probably finished it in the studio, complaining to Theo that he sweated blood and tears over it. He was pleased with the finished result, however, and listed it among his ‘poetic subjects’, which included Starry Night over the Rhéne and a picture on the theme of The Poet's Garden, all intended as decorations for the Yellow House.",
                     "image": null
                 }
@@ -296,15 +289,14 @@
             "roomTitle": "Montmajour: A Series",
             "roomIntroduction": "Montmajour: A Series\n\nVan Gogh marvelled at the landscapes surrounding Arles, some of which put him in mind of places mentioned in his favourite novels. Among the most evocative were the grounds surrounding the ruined 12th-century Montmajour Abbey, a well-known landmark north of Arles. After making a number of drawings of Montmajour in May 1888, he returned in July to create a series of large-scale works on paper. These remarkable drawings depict a hybrid place; at once the result of meticulous observation and the artist’s imagination.",
             "roomImage": null,
-            "paintings":
-            [
+            "paintings": [
                 {
                     "paintingNumber": "29",
                     "paintingTitle": "View of Arles from Montmajour",
                     "paintingTime": "1888",
                     "media": "Reed and quill pen and ink and pencil on paper",
                     "origin": "The National Museum of Art, Architecture and Design, Oslo",
-                    "exhibitionText": "The distinctive skyline of Arles, with the smoking chimneys of the town’s factories on the far left, was recorded by Van Gogh as he stood on the heights of Montmajour Abbey. He described the scene to his brother as a contrast between ‘the wild and romantic foreground — and the broad, tranquil distant prospects with their horizontal lines’. He considered it the first image in a series he dedicated to the site.",
+                    "exhibitionText": "The distinctive skyline of Arles, with the smoking chimneys of the town’s factories on the far left, was recorded by Van Gogh as he stood on the heights of Montmajour Abbey. He described the scene to his brother as a contrast between ‘the wild and romantic foreground - and the broad, tranquil distant prospects with their horizontal lines’. He considered it the first image in a series he dedicated to the site.",
                     "image": null
                 },
                 {
@@ -342,9 +334,9 @@
                     "origin": "The British Museum. César Mange de Hauke Bequest, 1968,0210.20",
                     "exhibitionText": "Van Gogh contrasts a steam train with a horse-drawn carriage in this sweeping panorama across the plain of La Crau. The vista recalls the pivotal scene in Zola’s The Sin of Abbé Mouret when the priest's amnesia lifts as he sees the landscape below Le Paradou dotted with people living ordinary lives. Van Gogh considered this the last drawing of the Montmajour series and among ‘the best I’ve done with my pen’.",
                     "image": {
-		            	"url": "p33.png",
-		            	"description": "Around Arles — Montmajour — The Ruins of the Abbey, around 1900  \n© Reproduction Benjamin Gavaudo / CMN"
-		            }
+                        "url": "p33.png",
+                        "description": "Around Arles — Montmajour — The Ruins of the Abbey, around 1900  \n© Reproduction Benjamin Gavaudo / CMN"
+                    }
                 },
                 {
                     "paintingNumber": "34",
@@ -361,15 +353,14 @@
             "roomTitle": "Decoration",
             "roomIntroduction": "Van Gogh developed his decoration of the Yellow House into a concept for the presentation of his work that could stand alongside the paintings of his contemporaries and even be transferred for exhibition in Paris. Throughout his time in Provence, he dispatched his work to his brother in the capital and submitted pictures to exhibitions in Paris and Brussels. Visitors also came to Theo's flat to see Vincent’s work. After Van Gogh’s first mental breakdown at the end of 1888, and subsequent crises in the following spring, during which time he lost possession of the Yellow House, he carried on developing his ideas for the decoration. One of his most famous groupings, devised during the spring of 1889 when he was in Saint-Rémy, is recreated in this room: two Sunflower pictures flanking La Berceuse.",
             "roomImage": null,
-            "paintings":
-            [
+            "paintings": [
                 {
                     "paintingNumber": "35",
                     "paintingTitle": "The Stevedores, 1888",
                     "paintingTime": "1888",
                     "media": "Oil on canvas",
                     "origin": "Private collection",
-                    "exhibitionText": "| saw a magnificent and very strange effect this evening. A very large boat laden with coal on the Rhéne, moored at the quay... . On the boat, small workmen... were coming and going, carrying the cargo ashore. It was pure Hokusai. Van Gogh's description of a scene that reminded him of the celebrated Japanese printmaker later resulted in this remarkable picture. The sunset is captured in orange, yellow and turquoise streaked with lilac.",
+                    "exhibitionText": "I saw a magnificent and very strange effect this evening. A very large boat laden with coal on the Rhéne, moored at the quay... . On the boat, small workmen... were coming and going, carrying the cargo ashore. It was pure Hokusai. Van Gogh's description of a scene that reminded him of the celebrated Japanese printmaker later resulted in this remarkable picture. The sunset is captured in orange, yellow and turquoise streaked with lilac.",
                     "image": null
                 },
                 {
@@ -452,9 +443,9 @@
                     "origin": "Philadelphia Museum of Art: The Mr. and Mrs. Carroll S. Tyson, Jr., Collection, 1963",
                     "exhibitionText": "Van Gogh realised the importance of the Sunflowers and painted additional versions of them in early 1889, such as this one with its blue background. Later, in May, he elaborated a daring new scheme for their display in a letter to his brother. Describing it as a ‘triptych’ (three-panelled work), he imagined two Sunflower pictures flanking La Berceuse (43) which, if hung in a ship, might bring comfort to sailors travelling far from home.",
                     "image": {
-		            	"url": "p44.png",
-		            	"description": "Van Gogh's sketch of the triptych in his letter to Theo, 22 May 1889"
-		            }
+                        "url": "p44.png",
+                        "description": "Van Gogh's sketch of the triptych in his letter to Theo, 22 May 1889"
+                    }
                 },
                 {
                     "paintingNumber": "45",
@@ -475,24 +466,22 @@
                     "image": null
                 }
             ]
-    },
+        },
         {
             "roomTitle": "Variations on a Theme",
             "roomIntroduction": "Variations on a Theme. The landscape surrounding Saint-Rémy, with its olive groves and the craggy limestone of the Alpilles mountain range, provided Van Gogh with rich material for creating works in series. Developing ideas he had established in Arles, he fixed on subjects and explored their expressive possibilities through variations. At times, he imaginatively pitched his own work against that produced by Gauguin and Bernard. Van Gogh now often created his work in the studio, a room provided for him at the hospital, which led him to produce some of the most stylised art of his career. He also used the studio to continue creating ‘repetitions’ of existing works and new portraits.",
-            "roomImage":
-            {
+            "roomImage": {
                 "url": "r6.png",
                 "description": "Aerial view of the Saint-Paul de Mausole hospital in Saint-Rémy with the Alpilles in the background. Postcard. Private collection."
             },
-            "paintings":
-            [
+            "paintings": [
                 {
                     "paintingNumber": "47",
                     "paintingTitle": "The Arlésienne, 1890",
                     "paintingTime": "1890",
                     "media": "Oil on canvas",
                     "origin": "Galleria Nazionale d'Arte Moderna e Contemporanea, Rome",
-                    "exhibitionText": "In popular culture of the time, the women of Arles were celebrated for their raven-haired beauty. Van Gogh painted five versions of this Arlésienne (woman from Arles). The model, Marie Ginoux (1848-1911), who ran the local café, had originally posed for Van Gogh and Gauguin in November 1888. Later, when in Saint-Rémy, Van Gogh based his quintessential Provencale on the simplified lines of a charcoal drawing Gauguin had made during the sitting. He added two of his favourite books: Charles Dickens's Christmas Stories, 1843-8, and Harriet Beecher Stowe’s now controversial anti-slavery novel, Uncle Tom’s Cabin, 1852. In a letter to Gauguin, Van Gogh called the image ‘a synthesis of an Arlésienne’. He presented one (47) to his friend Emile Bernard, one to Theo and another to Gauguin himself, thus ensuring the paintings would be seen by artists in Paris.",
+                    "exhibitionText": "See (48)",
                     "image": null
                 },
                 {
@@ -599,7 +588,7 @@
                     "paintingTitle": "Olive Grove with Two Olive Pickers, 1889",
                     "paintingTime": "1889",
                     "media": "Oil on canvas",
-                    "origin": "Kroller-Muller Museum, Otterlo, The Netherlands",
+                    "origin": "Kröller-Müller Museum, Otterlo, The Netherlands",
                     "exhibitionText": "In the studio, Van Gogh repeated the composition of Olive Grove, Saint-Rémy (58) to which he added imagined figures, a smiling woman in the foreground and a man in blue. Their presence adds to what was already a highly composed and stylised depiction of a grove beneath a sky flecked with wisps of red and blue clouds — all painted using drifts of brushstrokes.",
                     "image": null
                 },
@@ -608,7 +597,7 @@
                     "paintingTitle": "Tree Trunks in the Grass, 1890",
                     "paintingTime": "1890",
                     "media": "Oil on canvas",
-                    "origin": "Kréller-Muller Museum, Otterlo, The Netherlands",
+                    "origin": "Kröller-Müller Museum, Otterlo, The Netherlands",
                     "exhibitionText": "Applying paint in calligraphic strokes reminiscent of his reed pen drawings, Van Gogh revels in the textures and colours of this view of flowering weeds growing among the trees in the garden at Saint-Rémy. In contrast to the sadness and suffering he aimed to convey in depictions of the hospital grounds the previous autumn, his paintings of the garden in spring 1890 suggest joy and hope.",
                     "image": null
                 },
@@ -622,6 +611,12 @@
                     "image": null
                 }
             ]
+        },
+        {
+            "roomTitle": "\"The painter of the future is a colourist such as there hasn't been before.\"",
+            "roomIntroduction": "Van Gogh wrote these words to his brother in the early months of his stay in Arles and strove to achieve this goal throughout his time in Provence. In just over two years, he developed ways of using intense color and technique to create poetic subjects filled with emotion.\n\nOn 16 May 1890, Van Gogh left Saint-Rémy to return to northern France. He settled in Auvers-sur-Oise, not far from Paris, and created an extraordinary body of new work. Two paintings from this period can be found in the Main Collection in Room 43.",
+            "roomImage": null,
+            "paintings": []
         }
     ]
 }
