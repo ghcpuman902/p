@@ -1,4 +1,5 @@
 import React from 'react'
+import { cn } from '@/lib/utils'
 
 interface SVGMapProps {
   lang: 'en-GB' | 'zh-TW'
@@ -98,11 +99,11 @@ export function ExhibitionPlan({ lang = 'en-GB' }: SVGMapProps) {
       </div>
 
       {/* Room Legend */}
-      <div className="grid gap-4 max-w-2xl mx-auto">
+      <div className="grid gap-4 w-auto mx-auto">
         {Object.entries(currentText.rooms).map(([number, description]) => (
-          <div key={number} className="grid grid-cols-[4em,1fr] gap-4">
-            <div className="text-secondary font-light">{lang==="zh-TW"?"展間":"Room"} {number}</div>
-            <div className="text-foreground whitespace-pre-line">{description}</div>
+          <div key={number} className="grid grid-cols-[4em,1fr] gap-4 text-lg">
+            <div className="text-secondary">{lang==="zh-TW"?"展間":"Room"} {number}</div>
+            <div className={cn("text-foreground", lang !== 'zh-TW' ?? "whitespace-pre-line" )}>{description}</div>
           </div>
         ))}
       </div>

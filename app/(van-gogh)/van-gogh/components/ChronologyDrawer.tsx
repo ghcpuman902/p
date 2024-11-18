@@ -18,17 +18,17 @@ const enGBChronologyData = [
     },
     {
         id: '1869-1875',
-        title: '1869-75',
+        title: '1869-1875',
         content: "Van Gogh works for the art dealers Goupil & Cie at The Hague, London, and Paris. His brother Theo (1857-1891) works for the same company from 1873."
     },
     {
         id: '1876-1879',
-        title: '1876-9',
+        title: '1876-1879',
         content: "Van Gogh takes a teaching post in England, where he also becomes a Christian lay preacher. He works as an evangelical preacher in the Borinage, a coal-mining region in Belgium."
     },
     {
         id: '1880-1885',
-        title: '1880-5',
+        title: '1880-1885',
         content: "Theo begins to provide financial support. Van Gogh decides to become an artist and spends a brief time at the Royal Academy of Fine Arts, Brussels, but over the next years, he works chiefly on his own. He lives in The Hague for two years, where he receives painting lessons, and at the end of 1885 he moves to Antwerp. Throughout this time, in a repeating pattern, Van Gogh is forced home to live with his parents due to a lack of funds."
     },
     {
@@ -182,17 +182,17 @@ const zhTWChronologyData = [
     },
     {
         "id": "1869-1875",
-        "title": "1869-75",
-        "content": "梵谷在海牙、倫敦和巴黎為古皮爾畫廊工作。他的弟弟提奧（1857-1891）自1873年開始也在同公司任職。"
+        "title": "1869-1875",
+        "content": "梵谷在海牙、倫敦和巴黎為古皮爾畫廊工作。他的弟弟提奧（1857生1891逝）自1873年開始也在同公司任職。"
     },
     {
         "id": "1876-1879",
-        "title": "1876-9",
+        "title": "1876-1879",
         "content": "梵谷在英國擔任教師，並成為基督教的在俗講道士。他在比利時的波里納日煤礦區作為福音傳道士工作。"
     },
     {
         "id": "1880-1885",
-        "title": "1880-5",
+        "title": "1880-1885",
         "content": "提奧開始提供經濟支持。梵谷決定成為藝術家，短暫就讀於布魯塞爾皇家藝術學院，但接下來幾年主要自學。他在海牙住了兩年，期間接受繪畫指導，1885年年底搬到安特衛普。在此期間，由於經濟拮据，他不得不多次返回父母家中。"
     },
     {
@@ -249,12 +249,12 @@ const zhTWChronologyData = [
             {
                 "id": "1888-05-01",
                 "title": "5月1日",
-                "content": "梵谷租下黃屋，在夏季用作畫室，並於鎮上其他地方寄宿。他創作了來自蒙馬儒的素描和阿爾勒公園的景觀。"
+                "content": "梵谷租下黃屋，在夏季用作畫室，並於鎮上其他地方寄宿。他創作了來自蒙馬喬山的素描和阿爾勒公園的景觀。"
             },
             {
                 "id": "1888-09-17",
                 "title": "9月17日",
-                "content": "他搬入黃屋，希望創建一個藝術家的家。"
+                "content": "他搬入黃屋，希望創建一個藝術家之家。"
             },
             {
                 "id": "1888-10-23",
@@ -379,16 +379,16 @@ export function ChronologyDrawer({ lang }: { lang: "en-GB" | "zh-TW" }) {
         >
             <div className="flex flex-col md:flex-row justify-between mx-auto h-full overflow-y-auto p-4 pt-4">
                 <main className="w-full md:pr-4">
-                    {chronologyData[lang].data.map((year) => (
+                    {chronologyData[lang].data.map((year, yearIdx) => (
                         <section key={year.id} className="mb-8">
                             <h2 id={year.id} className="scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0">
-                                {year.title}
+                                {year.title} <div className="text-muted-foreground text-sm">({yearIdx !== 0 ? (year.title).split('-').map((yearText)=>(`${parseInt(yearText)-parseInt(chronologyData[lang].data[0].title)}`)).join('-') : `0-${1868-1853}`}{lang === 'zh-TW' ? '歲' : ' years old'})</div>
                             </h2>
                             {Array.isArray(year.content) ? (
                                 year.content.map((event) => (
                                     <div key={event.id} className="mb-4">
                                         <h3 id={event.id} className="text-xl font-medium mb-2">
-                                            {event.title}
+                                            {event.title} 
                                         </h3>
                                         <p>{event.content}</p>
                                     </div>

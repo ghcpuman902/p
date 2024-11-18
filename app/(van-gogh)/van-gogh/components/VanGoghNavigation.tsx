@@ -24,8 +24,8 @@ interface VanGoghNavigationProps {
 export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationProps) {
     const pathname = usePathname()
     const segments = useSelectedLayoutSegments()
-    const lang = segments[1] && SUPPORTED_LANGUAGES.includes(segments[1].split('/')[0] as SupportedLanguage) 
-        ? (segments[1].split('/')[0] as SupportedLanguage) 
+    const lang = segments[1] && SUPPORTED_LANGUAGES.includes(segments[1].split('/')[0] as SupportedLanguage)
+        ? (segments[1].split('/')[0] as SupportedLanguage)
         : DEFAULT_LANGUAGE
     const rooms = roomOptions[lang]
     const roomsContainerRef = useRef<HTMLDivElement>(null)
@@ -47,7 +47,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
         const paintingNumber = currentRoomId.split('-')[1]
         const painting = rooms.flatMap((room: Room) => room.paintings)
             .find((painting: Painting) => painting.paintingNumber === paintingNumber)
-        
+
         if (painting) {
             currentRoomId = `room-${painting.roomNumber}`
             currentPaintingId = painting.id
@@ -76,7 +76,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
         if (!activePainting && activeRoom) {
             // Find the active room's data
             const activeRoomData = rooms.find(r => r.id === activeRoom.getAttribute('data-room-id'))
-            
+
             // Only try to scroll to first painting if the room has paintings
             if (activeRoomData?.paintings.length) {
                 const firstPainting = document.querySelector(`[data-painting-id="${activeRoomData.paintings[0].id}"]`);
@@ -102,10 +102,10 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
     // Calculate previous and next URLs
     const getPreviousUrl = () => {
         if (!isValidRoom) return null;
-        
+
         const currentRoomIndex = rooms.findIndex(room => room.id === currentRoomId);
         const currentRoom = rooms[currentRoomIndex];
-        
+
         if (currentPaintingId && isValidPainting) {
             const currentPaintingIndex = currentRoom.paintings.findIndex(painting => painting.id === currentPaintingId);
             if (currentPaintingIndex > 0) {
@@ -124,13 +124,13 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
 
     const getNextUrl = () => {
         if (!isValidRoom) return null;
-        
+
         const currentRoomIndex = rooms.findIndex(room => room.id === currentRoomId);
         const currentRoom = rooms[currentRoomIndex];
-        
+
         if (!currentRoom) return null;
-        
-        const currentPaintingIndex = currentPaintingId ? 
+
+        const currentPaintingIndex = currentPaintingId ?
             currentRoom.paintings.findIndex(painting => painting.id === currentPaintingId) :
             -1;
 
@@ -146,8 +146,8 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
 
     return (
         <>
-            <div className="fixed top-0 left-0 right-0 bottom-0 flex flex-col">
-                <nav className="bg-zinc-100 dark:bg-black p-2">
+            {/* <div className="flex flex-col"> */}
+                <nav className="sticky top-0 left-0 right-0 bg-zinc-100 dark:bg-black p-2">
                     <div className="max-w-full w-screen">
                         <div
                             ref={roomsContainerRef}
@@ -164,8 +164,8 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                                         data-room-active={room.id === currentRoomId}
                                         data-room-id={room.id}
                                         data-room-number={room.roomNumber}
-                                        className={cn("rounded-none whitespace-nowrap flex-none mr-1 h-12", 
-                                            room.id === currentRoomId && "bg-secondary text-secondary-foreground hover:bg-secondary hover:text-secondary-foreground active:bg-secondary active:text-secondary-foreground")}
+                                        className={cn("rounded-none whitespace-nowrap flex-none mr-1 h-12",
+                                            room.id === currentRoomId ? "bg-secondary text-secondary-foreground hover:bg-secondary/90 hover:text-secondary-foreground active:bg-secondary/60 active:text-secondary-foreground" : "opacity-60")}
                                         asChild
                                     >
                                         <Link href={`/van-gogh/${currentLang}/${room.id}`}>
@@ -193,9 +193,13 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                                             data-painting-active={painting.id === currentPaintingId}
                                             data-painting-id={painting.id}
                                             data-painting-number={painting.paintingNumber}
-                                            className={cn("rounded-none w-12 h-12 flex-none mr-1", 
-                                                painting.id === currentPaintingId && "bg-secondary text-secondary-foreground hover:bg-secondary hover:text-secondary-foreground active:bg-secondary active:text-secondary-foreground",
-                                                room.id === currentRoomId && "border-b-4 border-b-secondary")}
+                                            className={cn("rounded-none w-12 h-12 flex-none mr-1",
+                                                painting.id === currentPaintingId && "bg-secondary text-secondary-foreground hover:bg-secondary/90 hover:text-secondary-foreground active:bg-secondary/60 active:text-secondary-foreground",
+                                                room.id === currentRoomId ? "border-b-4 border-b-secondary" : "opacity-60")}
+                                            // room.id === currentRoomId && "shadow-secondary")}
+                                            style={{
+                                                boxShadow: "hsl(var(--secondary)) 0px 10px 0px 0px"
+                                            }}
                                             asChild
                                         >
                                             <Link href={`/van-gogh/${currentLang}/${room.id}/${painting.id}`}>
@@ -206,7 +210,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                                     roomIndex < rooms.length - 1 && rooms[roomIndex + 1].paintings.length ? (
                                         <div
                                             key={`separator-${room.roomTitle}`}
-                                            className="h-6 w-[10px] bg-neutral-400 mr-1 rounded-full separator"
+                                            className="h-6 w-[10px] bg-neutral-400 mr-1 rounded-full separator "
                                         >&nbsp;</div>
                                     ) : null,
                                 ])}
@@ -214,10 +218,10 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                         </div>
                     </div>
                 </nav>
-                <main className="overflow-y-auto" style={{ height: 'calc(100vh - 48px)', paddingBottom: 'calc(48px + 1rem)' }}>
-                    {children}
-                </main>
-            </div>
+            {/* </div> */}
+            <main className="" style={{ height: 'calc(100vh - 48px)', paddingBottom: 'calc(48px + 1rem)' }}>
+                {children}
+            </main>
 
             <div className="fixed bottom-0 left-0 right-0 flex justify-between items-center bg-transparent gap-4 p-2">
                 <div className="flex gap-2">
@@ -230,8 +234,8 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                     </Button>
                 </div>
                 <div className="flex">
-                    <Button 
-                        className="rounded-l-full h-12 flex items-center justify-center border-r border-border/50 px-4 bg-primary text-primary-foreground hover:bg-primary/90" 
+                    <Button
+                        className="rounded-l-full h-12 flex items-center justify-center border-r border-border/50 px-4 bg-primary text-primary-foreground hover:bg-primary/90"
                         asChild
                         disabled={!getPreviousUrl()}
                     >
@@ -239,8 +243,8 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                             <ChevronLeft className="h-6 w-6" />
                         </Link>
                     </Button>
-                    <Button 
-                        className="rounded-r-full h-12 flex items-center justify-center px-4 bg-primary text-primary-foreground hover:bg-primary/90" 
+                    <Button
+                        className="rounded-r-full h-12 flex items-center justify-center px-4 bg-primary text-primary-foreground hover:bg-primary/90"
                         asChild
                         disabled={!getNextUrl()}
                     >

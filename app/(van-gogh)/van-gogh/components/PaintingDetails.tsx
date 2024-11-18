@@ -1,5 +1,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { Button } from '@/components/ui/button'
+import { Play, Pause } from 'lucide-react'
+
 import { Room, Painting } from '../types';
 import painting21 from '@/public/van-gogh/p21.png'
 import painting27 from '@/public/van-gogh/p27.png'
@@ -46,11 +49,11 @@ function PaintingDetails({ currentRoom, currentPainting, lang }: PaintingDetails
       currentPainting.origin
     ].filter(Boolean)
   } : {
-    number: currentRoom.paintings.length ? 
-      `${currentRoom.paintings[0].paintingNumber}-${currentRoom.paintings[currentRoom.paintings.length - 1].paintingNumber}` : 
-      `${lang==="zh-TW"?"結語":"End"}`,
-    title: currentRoom.paintings.length ? 
-      `${lang==="zh-TW"?"展間":"Room"} ${currentRoom.roomNumber}: ${currentRoom.roomTitle}` :
+    number: currentRoom.paintings.length ?
+      `${currentRoom.paintings[0].paintingNumber}-${currentRoom.paintings[currentRoom.paintings.length - 1].paintingNumber}` :
+      `${lang === "zh-TW" ? "結語" : "End"}`,
+    title: currentRoom.paintings.length ?
+      `${lang === "zh-TW" ? "展間" : "Room"} ${currentRoom.roomNumber}: ${currentRoom.roomTitle}` :
       `${currentRoom.roomTitle}`,
     text: currentRoom.roomIntroduction,
     image: currentRoom.roomImage,
@@ -74,21 +77,38 @@ function PaintingDetails({ currentRoom, currentPainting, lang }: PaintingDetails
     )}>
       <div className={cn(
         "text-[100px] md:text-[120px] font-light leading-none",
-        !currentPainting ? "text-white" : "text-[hsl(var(--secondary-invert))]"
-      )}>
+        !currentPainting ? "text-[hsl(var(--secondary)/0.5] opacity-50 dark:text-[hsl(var(--secondary)/0.8)] dark:opacity-100" : "text-[hsl(var(--secondary-invert))]"
+      )}
+        style={{
+          textShadow: "rgba(255,255,255,0.2) 0px 0.5px, rgba(0,0,0,0.8) 0px -0.5px"
+        }}
+      >
         {displayData.number}
       </div>
-      
-      <h2 className={cn("font-light leading-tight", 
-        lang==="zh-TW"?"pr-5 text-3xl":"text-4xl",
+
+      <h2 className={cn("font-light leading-tight",
+        lang === "zh-TW" ? "pr-5 text-3xl" : "text-4xl",
         !currentPainting ? "text-white" : "text-[hsl(var(--secondary-invert))]"
       )}>
-        {lang==="zh-TW"?(displayData.title).replace(/《|》/g, '').replace(/\s?\(/g, '（').replace(/\)\s?/g, '）'):displayData.title}
+        {lang === "zh-TW" ? (displayData.title).replace(/《|》/g, '').replace(/\s?\(/g, '（').replace(/\)\s?/g, '）') : displayData.title}
       </h2>
-      
+
+      <div className="flex flex-col my-4">
+        <Button
+          className="sm:w-full max-w-sm rounded-full h-12 flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary/90"
+          // asChild
+          // disabled={!getNextUrl()}
+        >
+          {/* <Link href={getNextUrl() ?? '#'}> */}
+            <span className="ml-1">{lang === "zh-TW" ? "播放" : "Play Audio"}</span>
+            <Play className="h-6 w-6" />
+          {/* </Link> */}
+        </Button>
+      </div>
+
       {displayData.image && (
         <div className="flex flex-col items-center my-4">
-          <Image 
+          <Image
             src={paintingImages[displayData.image.url as keyof typeof paintingImages] || `/van-gogh/${displayData.image.url}`}
             alt={displayData.image.description}
             priority
@@ -101,7 +121,7 @@ function PaintingDetails({ currentRoom, currentPainting, lang }: PaintingDetails
           )}>{displayData.image.description}</p>
         </div>
       )}
-      
+
       <div className="leading-7 [&:not(:first-child)]:mt-6">
         {transformText(displayData.text, lang)}
       </div>
