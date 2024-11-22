@@ -1,44 +1,13 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
+import { type Locale, getTranslation } from '@/lib/localization'
 
 interface SVGMapProps {
-  lang: 'en-GB' | 'zh-TW'
+  lang: Locale
 }
 
-export function ExhibitionPlan({ lang = 'en-GB' }: SVGMapProps) {
-  const texts = {
-    'en-GB': {
-      title: 'Exhibition plan',
-      exit: 'Exit',
-      shop: 'Shop',
-      entrance: 'Entrance',
-      rooms: {
-        1: 'Introduction',
-        2: 'The Garden:\nPoetic Interpretations',
-        3: 'The Yellow House:\nAn Artist\'s Home',
-        4: 'Montmajour: A Series',
-        5: 'Decoration',
-        6: 'Variations on a Theme'
-      }
-    },
-    'zh-TW': {
-      title: '展覽平面圖',
-      exit: '出口',
-      shop: '商店', 
-      entrance: '入口',
-      rooms: {
-        1: '介紹',
-        2: '花園：\n詩意的詮釋',
-        3: '黃房子：\n藝術家之家',
-        4: '蒙馬茹：系列',
-        5: '裝飾',
-        6: '主題變奏'
-      }
-    }
-  }
-
-  const currentText = texts[lang]
-//   console.log(lang,currentText)
+export function ExhibitionPlan({ lang }: SVGMapProps) {
+  const rooms = Array.from({ length: 6 }, (_, i) => i + 1)
 
   return (
     <div className="max-w-4xl mx-auto p-4 font-sans">
@@ -85,9 +54,9 @@ export function ExhibitionPlan({ lang = 'en-GB' }: SVGMapProps) {
 
           {/* Labels and Arrows */}
           <g className="map-text map-label">
-            <text x="73.5" y="46.5" textAnchor="middle">{currentText.exit}</text>
-            <text x="114" y="111.95" textAnchor="middle">{currentText.shop}</text>
-            <text x="478.5" y="136.5" textAnchor="middle">{currentText.entrance}</text>
+            <text x="73.5" y="46.5" textAnchor="middle">{getTranslation(lang, 'exit')}</text>
+            <text x="114" y="111.95" textAnchor="middle">{getTranslation(lang, 'shop')}</text>
+            <text x="478.5" y="136.5" textAnchor="middle">{getTranslation(lang, 'entrance')}</text>
           </g>
 
           {/* Arrows */}
@@ -100,10 +69,17 @@ export function ExhibitionPlan({ lang = 'en-GB' }: SVGMapProps) {
 
       {/* Room Legend */}
       <div className="grid gap-4 w-auto mx-auto">
-        {Object.entries(currentText.rooms).map(([number, description]) => (
+        {rooms.map((number) => (
           <div key={number} className="grid grid-cols-[4em,1fr] gap-4 text-lg">
-            <div className="text-secondary">{lang==="zh-TW"?"展間":"Room"} {number}</div>
-            <div className={cn("text-foreground", lang !== 'zh-TW' ?? "whitespace-pre-line" )}>{description}</div>
+            <div className="text-secondary">
+              {getTranslation(lang, 'room')} {number}
+            </div>
+            <div className={cn(
+              "text-foreground",
+              lang !== 'en-GB' && "whitespace-pre-line"
+            )}>
+              {getTranslation(lang, `exhibitionRoom${number}`)}
+            </div>
           </div>
         ))}
       </div>

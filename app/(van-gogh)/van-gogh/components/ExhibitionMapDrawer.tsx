@@ -3,10 +3,18 @@
 import { Map } from 'lucide-react'
 import { SharedDrawer } from './SharedDrawer'
 import { ExhibitionPlan } from "./ExhibitionPlan"
+import { type Locale, getTranslation } from '@/lib/localization'
 
-export function ExhibitionMapDrawer({ lang = 'en-GB' }: { lang: 'en-GB' | 'zh-TW' }) {
+interface ExhibitionMapDrawerProps {
+    lang: Locale
+}
+
+export function ExhibitionMapDrawer({ lang }: ExhibitionMapDrawerProps) {
     return (
-        <SharedDrawer title={lang==="zh-TW"?"展覽平面圖":"Exhibition Plan"} icon={Map}>
+        <SharedDrawer 
+            title={getTranslation(lang, "exhibitionPlan")} 
+            icon={Map}
+        >
             <div className="p-4 pt-4 flex-1">
                 <ExhibitionPlan lang={lang} />
             </div>

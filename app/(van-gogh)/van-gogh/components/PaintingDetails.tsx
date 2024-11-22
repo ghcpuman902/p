@@ -1,47 +1,48 @@
 import Link from 'next/link';
-import Image from 'next/image';
-import { Button } from '@/components/ui/button'
-import { Play, Pause } from 'lucide-react'
-
 import { Room, Painting } from '../types';
-import painting21 from '@/public/van-gogh/p21.png'
-import painting27 from '@/public/van-gogh/p27.png'
-import painting33 from '@/public/van-gogh/p33.png'
-import painting44 from '@/public/van-gogh/p44.png'
-import painting8 from '@/public/van-gogh/p8.png'
-import room3 from '@/public/van-gogh/r3.png'
-import room6 from '@/public/van-gogh/r6.png'
 import { cn } from '@/lib/utils';
+import { getTranslation, Locale } from '@/lib/localization';
+import { PaintingImage } from './PaintingImage';
 
 // Helper function to transform text
-function transformText(text: string, lang: string): JSX.Element[] {
+function transformText(text: string, locale: Locale): JSX.Element[] {
   const parts = text.split(/(\n\n|\n|\*\*\*\*|\*\*|\(\d{1,2}\))/g);
   return parts.map((part, index) => {
     if (part === '\n\n') return <p key={index} className="leading-7 mt-6"></p>;
     if (part === '\n') return <br key={index} />;
     if (part === '****') return <strong key={index}></strong>;
     if (part === '**') return <em key={index}></em>;
-    const match = part.match(/\((\d{1,2})\)/);
+    const match = part.match(/[(\（](\d{1,2})[)\）]/);
     if (match) return (
-      <Link key={index} className="font-medium underline underline-offset-4" href={`/van-gogh/${lang}/painting-${match[1]}`}>
-        ({match[1]})
+      <Link key={index} className="font-medium underline underline-offset-4" href={`/van-gogh/${locale}/painting-${match[1]}`}>
+        {locale === 'zh-CN' || locale === 'zh-TW' ? `（${match[1]}）` : `(${match[1]})`}
       </Link>
     );
     return <span key={index}>{part}</span>;
   });
 }
 
+// Helper function to format Chinese titles
+function formatChineseTitle(title: string): string {
+  return title
+    .replace(/《|》/g, '')  // Remove Chinese book/title marks
+    .replace(/\s?\(/g, '（') // Replace western parentheses with Chinese ones
+    .replace(/\)\s?/g, '）');
+}
+
 interface PaintingDetailsProps {
   currentRoom: Room;
   currentPainting?: Painting | null;
-  lang: string;
+  locale: Locale;
 }
 
-function PaintingDetails({ currentRoom, currentPainting, lang }: PaintingDetailsProps) {
+function PaintingDetails({ currentRoom, currentPainting, locale }: PaintingDetailsProps) {
   // Unified structure for both room and painting display
   const displayData = currentPainting ? {
     number: currentPainting.paintingNumber,
-    title: currentPainting.paintingTitle,
+    title: locale === "zh-TW" || locale === "zh-CN" 
+      ? formatChineseTitle(currentPainting.paintingTitle)
+      : currentPainting.paintingTitle,
     text: currentPainting.exhibitionText,
     image: currentPainting.image,
     details: [
@@ -51,91 +52,69 @@ function PaintingDetails({ currentRoom, currentPainting, lang }: PaintingDetails
   } : {
     number: currentRoom.paintings.length ?
       `${currentRoom.paintings[0].paintingNumber}-${currentRoom.paintings[currentRoom.paintings.length - 1].paintingNumber}` :
-      `${lang === "zh-TW" ? "結語" : "End"}`,
+      getTranslation(locale, "end"),
     title: currentRoom.paintings.length ?
-      `${lang === "zh-TW" ? "展間" : "Room"} ${currentRoom.roomNumber}: ${currentRoom.roomTitle}` :
-      `${currentRoom.roomTitle}`,
+      locale === "zh-TW" || locale === "zh-CN"
+        ? formatChineseTitle(`${getTranslation(locale, "room")} ${currentRoom.roomNumber}: ${currentRoom.roomTitle}`)
+        : `${getTranslation(locale, "room")} ${currentRoom.roomNumber}: ${currentRoom.roomTitle}`
+      : formatChineseTitle(currentRoom.roomTitle),
     text: currentRoom.roomIntroduction,
     image: currentRoom.roomImage,
     details: []
   };
 
-  const paintingImages = {
-    'p21.png': painting21,
-    'p27.png': painting27,
-    'p33.png': painting33,
-    'p44.png': painting44,
-    'p8.png': painting8,
-    'r3.png': room3,
-    'r6.png': room6
-  }
-
   return (
-    <article className={cn(
-      "max-w-2xl mx-auto p-6 space-y-6 transition-all duration-300",
-      !currentPainting && "bg-secondary text-white shadow-[0_0_1000px_1000px_hsl(var(--secondary))]"
+    <div className={cn(
+      "w-full h-full min-h-screen pb-[calc(48px+1rem)]",
+      !currentPainting && "bg-secondary text-white"
     )}>
-      <div className={cn(
-        "text-[100px] md:text-[120px] font-light leading-none",
-        !currentPainting ? "text-[hsl(var(--secondary)/0.5] opacity-50 dark:text-[hsl(var(--secondary)/0.8)] dark:opacity-100" : "text-[hsl(var(--secondary-invert))]"
-      )}
-        style={{
-          textShadow: "rgba(255,255,255,0.2) 0px 0.5px, rgba(0,0,0,0.8) 0px -0.5px"
-        }}
-      >
-        {displayData.number}
-      </div>
-
-      <h2 className={cn("font-light leading-tight",
-        lang === "zh-TW" ? "pr-5 text-3xl" : "text-4xl",
-        !currentPainting ? "text-white" : "text-[hsl(var(--secondary-invert))]"
+      <article className={cn(
+        "max-w-2xl mx-auto p-6 space-y-6 transition-all duration-300"
       )}>
-        {lang === "zh-TW" ? (displayData.title).replace(/《|》/g, '').replace(/\s?\(/g, '（').replace(/\)\s?/g, '）') : displayData.title}
-      </h2>
-
-      <div className="flex flex-col my-4">
-        <Button
-          className="sm:w-full max-w-sm rounded-full h-12 flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary/90"
-          // asChild
-          // disabled={!getNextUrl()}
+        <div className="h-24 p-8">&nbsp;</div>
+        <div className={cn(
+          "text-[100px] md:text-[120px] font-light leading-none z-0",
+          !currentPainting ? "text-[hsla(176,56%,64%,0.8)] dark:text-[hsl(var(--secondary)/0.8)]" : "text-[hsl(var(--secondary-invert))]"
+        )}
+          style={{
+            textShadow: "rgba(255,255,255,0.2) 0px 0.5px, rgba(0,0,0,0.8) 0px -0.5px"
+          }}
         >
-          {/* <Link href={getNextUrl() ?? '#'}> */}
-            <span className="ml-1">{lang === "zh-TW" ? "播放" : "Play Audio"}</span>
-            <Play className="h-6 w-6" />
-          {/* </Link> */}
-        </Button>
-      </div>
+          {displayData.number}
+        </div>
 
-      {displayData.image && (
-        <div className="flex flex-col items-center my-4">
-          <Image
-            src={paintingImages[displayData.image.url as keyof typeof paintingImages] || `/van-gogh/${displayData.image.url}`}
-            alt={displayData.image.description}
-            priority
-            quality={100}
-            className="w-full h-auto"
+        <h2 className={cn("font-light leading-tight",
+          ["zh-TW", "zh-CN"].includes(locale) ? "pr-5 text-3xl" : "text-4xl",
+          !currentPainting ? "text-white" : "text-[hsl(var(--secondary-invert))]"
+        )}>
+          {displayData.title}
+        </h2>
+
+        {displayData.image && (
+          <PaintingImage 
+            imageUrl={displayData.image.url}
+            description={displayData.image.description}
+            locale={locale}
+            isPainting={!!currentPainting}
           />
-          <p className={cn(
-            "mt-2",
-            !currentPainting ? "text-neutral-200" : "text-muted-foreground"
-          )}>{displayData.image.description}</p>
+        )}
+
+        <div className="leading-7 [&:not(:first-child)]:mt-6">
+          {transformText(displayData.text, locale)}
         </div>
-      )}
 
-      <div className="leading-7 [&:not(:first-child)]:mt-6">
-        {transformText(displayData.text, lang)}
-      </div>
+        {displayData.details.length > 0 && (
+          <div className="space-y-1">
+            {displayData.details.map((detail, index) => (
+              <p key={index} className="text-gray-500">{detail}</p>
+            ))}
+          </div>
+        )}
 
-      {displayData.details.length > 0 && (
-        <div className="space-y-1">
-          {displayData.details.map((detail, index) => (
-            <p key={index} className="text-gray-500">{detail}</p>
-          ))}
-        </div>
-      )}
-
-    </article>
+      </article>
+    </div>
   );
 }
 
 export default PaintingDetails
+

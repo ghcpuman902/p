@@ -1,8 +1,9 @@
 import { promises as fs } from 'fs'
 import { Painting, Room } from '../types'
+import { Locale, DEFAULT_LOCALE } from '@/lib/localization'
 
-export async function getRooms(lang: string = 'en-GB'): Promise<Room[]> {
-  const fileName = `${lang.slice(0,2).toLowerCase()}-${lang.slice(3).toUpperCase()}_rooms.json`
+export async function getRooms(locale: Locale = DEFAULT_LOCALE): Promise<Room[]> {
+  const fileName = `${locale.slice(0,2).toLowerCase()}-${locale.slice(3).toUpperCase()}_rooms.json`
   const filePath = `${process.cwd()}/public/van-gogh/${fileName}`
 
   try {
@@ -24,10 +25,10 @@ export async function getRooms(lang: string = 'en-GB'): Promise<Room[]> {
       }
     })
   } catch (error) {
-    console.error(`Error reading file for language ${lang}:`, error)
-    if (lang.toLowerCase() !== 'en-gb') {
-      console.log('Falling back to English')
-      return getRooms('en-GB')
+    console.error(`Error reading file for locale ${locale}:`, error)
+    if (locale.toLowerCase() !== DEFAULT_LOCALE.toLowerCase()) {
+      console.log('Falling back to default locale')
+      return getRooms(DEFAULT_LOCALE)
     }
     throw error
   }

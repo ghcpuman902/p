@@ -35,8 +35,9 @@ export function SharedDrawer({ title, icon: Icon, children, isOpen, onOpenChange
         return (
             <Dialog open={isOpen} onOpenChange={onOpenChange}>
                 <DialogTrigger asChild>
-                    <Button size="icon" className="rounded-full h-12 w-12">
+                    <Button className="rounded-full h-10 flex items-center justify-center">
                         <Icon className="h-6 w-6" />
+                        <span>{title}</span>
                     </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-4xl h-[80vh] flex flex-col [--radius:1.5rem]">
@@ -63,8 +64,9 @@ export function SharedDrawer({ title, icon: Icon, children, isOpen, onOpenChange
             onOpenChange={onOpenChange}
         >
             <Drawer.Trigger asChild>
-                <Button size="icon" className="rounded-full h-12 w-12">
+                <Button className="rounded-full h-10 flex items-center justify-center">
                     <Icon className="h-6 w-6" />
+                    <span>{title}</span>
                 </Button>
             </Drawer.Trigger>
             <Drawer.Overlay className="fixed inset-0 bg-black/40" />

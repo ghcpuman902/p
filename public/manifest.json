@@ -4,6 +4,7 @@
     "description": "Van Gogh Exhibition",
     "start_url": "/van-gogh/zh-TW/room-1",
     "display": "standalone",
+    "orientation": "portrait",
     "background_color": "#ffffff",
     "theme_color": "#000000",
     "icons": [

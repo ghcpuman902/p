@@ -2,38 +2,38 @@ import { notFound, redirect } from 'next/navigation'
 import { type Room, type Painting } from '../types'
 import { getRooms } from '../utils/getRooms'
 import PaintingDetails from '../components/PaintingDetails'
+import { Locale, SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/lib/localization'
+// import { InstallPrompt } from '../components/InstallPrompt'
+
 
 export async function generateStaticParams(): Promise<{ slug: string[] }[]> {
-  const languages = ['en-GB', 'zh-TW']
   const allParams = []
 
-  for (const lang of languages) {
-    const rooms = await getRooms(lang)
-    
-    // Generate params for room-painting combinations
-    const roomPaintingParams = rooms.flatMap((room: Room) =>
-      room.paintings.map((painting: Painting) => ({
-        slug: [lang, room.id, painting.id]
-      }))
-    )
-
-    // Generate params for room IDs
-    const roomParams = rooms.map((room: Room) => ({
-      slug: [lang, room.id]
-    }))
-
-    // Generate params for painting numbers
-    const paintingParams = rooms.flatMap((room: Room) => 
-      room.paintings.map((painting: Painting) => ({
-        slug: [lang, `painting-${painting.paintingNumber}`]
-      }))
-    )
-
-    allParams.push(...roomPaintingParams, ...roomParams, ...paintingParams)
+  for (const locale of SUPPORTED_LOCALES) {
+    const rooms = await getRooms(locale as Locale)
+    const localeParams = [
+      // Room-painting combinations
+      ...rooms.flatMap((room: Room) =>
+        room.paintings.map((painting: Painting) => ({
+          slug: [locale, room.id, painting.id]
+        }))
+      ),
+      // Room IDs
+      ...rooms.map((room: Room) => ({
+        slug: [locale, room.id]
+      })),
+      // Painting numbers
+      ...rooms.flatMap((room: Room) => 
+        room.paintings.map((painting: Painting) => ({
+          slug: [locale, `painting-${painting.paintingNumber}`]
+        }))
+      )
+    ]
+    allParams.push(...localeParams)
   }
 
   // Add default language routes
-  const defaultRooms = await getRooms('en-GB')
+  const defaultRooms = await getRooms(DEFAULT_LOCALE)
   const defaultParams = [
     ...defaultRooms.flatMap((room: Room) =>
       room.paintings.map((painting: Painting) => ({
@@ -59,33 +59,64 @@ export default async function Page({
   params: Promise<{ slug: string[] }>
 }) {
   const { slug = [] } = await params
-  let lang = 'en-GB'
-  let roomId: string
-  let paintingId: string | undefined
+  
+  // Clean up the slug array by removing any extra locales
+  const cleanSlug = (() => {
+    const localeIndexes = slug
+      .map((segment, index) => SUPPORTED_LOCALES.includes(segment as Locale) ? index : -1)
+      .filter(index => index !== -1);
+    
+    if (localeIndexes.length > 1) {
+      // Keep only the last locale and everything after it
+      return slug.slice(localeIndexes[localeIndexes.length - 1]);
+    }
+    return slug;
+  })();
+  
+  let locale: Locale = DEFAULT_LOCALE
+  let roomId: string = ''
+  let paintingId: string | undefined = undefined
 
-  if (slug.length === 0 || (slug.length === 1 && (slug[0] === 'en-GB' || slug[0] === 'zh-TW'))) {
-    const rooms = await getRooms(slug[0] || lang)
+  // Handle different URL patterns using cleanSlug instead of slug
+  if (cleanSlug.length === 0) {
+    // Root path: redirect to first room with default locale
+    const rooms = await getRooms(DEFAULT_LOCALE)
     if (rooms.length > 0) {
-      const langPath = (slug[0] && slug[0] !== 'en-GB') ? `/${slug[0]}` : ''
-      redirect(`/van-gogh${langPath}/${rooms[0].id}`)
+      redirect(`/van-gogh/${rooms[0].id}`)
     }
-  }
-
-  if (slug.length === 1) {
-    [roomId] = slug
-  } else if (slug.length === 2) {
-    if (slug[0] === 'en-GB' || slug[0] === 'zh-TW') {
-      [lang, roomId] = slug
+    return notFound()
+  } else if (cleanSlug.length === 1) {
+    // Single segment: either locale or roomId
+    if (SUPPORTED_LOCALES.includes(cleanSlug[0] as Locale)) {
+      locale = cleanSlug[0] as Locale
+      const rooms = await getRooms(locale)
+      if (rooms.length > 0) {
+        redirect(`/van-gogh/${locale}/${rooms[0].id}`)
+      }
+      return notFound()
     } else {
-      [roomId, paintingId] = slug
+      roomId = cleanSlug[0]
     }
-  } else if (slug.length === 3) {
-    [lang, roomId, paintingId] = slug
+  } else if (cleanSlug.length === 2) {
+    if (SUPPORTED_LOCALES.includes(cleanSlug[0] as Locale)) {
+      locale = cleanSlug[0] as Locale
+      roomId = cleanSlug[1]
+    } else {
+      roomId = cleanSlug[0]
+      paintingId = cleanSlug[1]
+    }
+  } else if (cleanSlug.length === 3) {
+    if (!SUPPORTED_LOCALES.includes(cleanSlug[0] as Locale)) {
+      return notFound()
+    }
+    locale = cleanSlug[0] as Locale
+    roomId = cleanSlug[1]
+    paintingId = cleanSlug[2]
   } else {
-    notFound()
+    return notFound()
   }
 
-  const rooms = await getRooms(lang)
+  const rooms = await getRooms(locale)
 
   // First try to find room directly
   const currentRoom = rooms.find((room: Room) => room.id === roomId)
@@ -101,8 +132,8 @@ export default async function Page({
       )
       if (painting) {
         // Redirect to the canonical URL format, preserving language
-        const langPath = lang !== 'en-GB' ? `/${lang}` : ''
-        redirect(`/van-gogh${langPath}/room-${painting.roomNumber}/${painting.id}`)
+        const localePath = locale !== DEFAULT_LOCALE ? `/${locale}` : ''
+        redirect(`/van-gogh${localePath}/room-${painting.roomNumber}/${painting.id}`)
       }
     }
     // If we get here, painting number was invalid
@@ -116,6 +147,7 @@ export default async function Page({
 
   // Handle painting ID if provided
   if (paintingId) {
+    // handle links from page that doesnt know the room number, like links in painting text
     if (paintingId.match(/^\d+$/)) {
       currentPainting = currentRoom.paintings.find(
         (p: Painting) => p.paintingNumber === paintingId
@@ -129,21 +161,23 @@ export default async function Page({
     if (currentPainting) {
       // Redirect to canonical URL format if necessary
       if (paintingId !== currentPainting.id) {
-        const langPath = lang !== 'en-GB' ? `/${lang}` : ''
-        redirect(`/van-gogh${langPath}/${currentRoom.id}/${currentPainting.id}`)
+        const localePath = locale !== DEFAULT_LOCALE ? `/${locale}` : ''
+        redirect(`/van-gogh${localePath}/${currentRoom.id}/${currentPainting.id}`)
       }
     } else {
       // If painting doesn't exist in this room, redirect to room view
-      const langPath = lang !== 'en-GB' ? `/${lang}` : ''
-      redirect(`/van-gogh${langPath}/${roomId}`)
+      const localePath = locale !== DEFAULT_LOCALE ? `/${locale}` : ''
+      redirect(`/van-gogh${localePath}/${roomId}`)
     }
   }
 
   return (
-    <PaintingDetails
-      currentRoom={currentRoom}
+    <>
+      <PaintingDetails
+        currentRoom={currentRoom}
       currentPainting={currentPainting}
-      lang={lang}
-    />
+      locale={locale}
+      />
+    </>
   )
 }

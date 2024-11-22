@@ -4,12 +4,22 @@ import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { getRooms } from './van-gogh/utils/getRooms'
 import { VanGoghNavigation } from './van-gogh/components/VanGoghNavigation'
+import { SUPPORTED_LOCALES, type Locale } from '@/lib/localization'
 
 const inter = Inter({ subsets: ['latin'] })
 
+const APP_NAME = "Van Gogh Digital Guide";
+const APP_DEFAULT_TITLE = "Van Gogh Digital Guide";
+const APP_TITLE_TEMPLATE = "%s - Van Gogh Digital Guide";
+const APP_DESCRIPTION = "A digital guide to Van Gogh's gallery exhibition, offering multilingual support, in-depth artwork details, and AI-driven commentary.";
+
 export const metadata: Metadata = {
-  title: 'Van Gogh Digital Guide',
-  description: 'A digital guide to Van Gogh\'s gallery exhibition, offering multilingual support, in-depth artwork details, and AI-driven commentary.',
+  applicationName: APP_NAME,
+  title: {
+    default: APP_DEFAULT_TITLE,
+    template: APP_TITLE_TEMPLATE,
+  },
+  description: APP_DESCRIPTION,
   creator: 'Mangle Kuo',
   authors: [
     {
@@ -18,12 +28,37 @@ export const metadata: Metadata = {
     }
   ],
   manifest: '/manifest.json',
-}
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: APP_DEFAULT_TITLE,
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  openGraph: {
+    type: "website",
+    siteName: APP_NAME,
+    title: {
+      default: APP_DEFAULT_TITLE,
+      template: APP_TITLE_TEMPLATE,
+    },
+    description: APP_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary",
+    title: {
+      default: APP_DEFAULT_TITLE,
+      template: APP_TITLE_TEMPLATE,
+    },
+    description: APP_DESCRIPTION,
+  },
+};
 
 export const viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#FFFFFF' },
-    { media: '(prefers-color-scheme: dark)', color: '#000000' }
+    { media: '(prefers-color-scheme: light)', color: 'rgba(244,244,245,0.8)'},
+    { media: '(prefers-color-scheme: dark)', color: 'rgba(0,0,0,0.8)' }
   ],
   width: 'device-width',
   initialScale: 1,
@@ -35,10 +70,13 @@ export default async function VanGoghLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [enRooms, zhRooms] = await Promise.all([
-    getRooms('en-GB'),
-    getRooms('zh-TW')
-  ])
+  const roomsByLocale = await Promise.all(
+    SUPPORTED_LOCALES.map(locale => getRooms(locale))
+  );
+
+  const roomOptions = Object.fromEntries(
+    SUPPORTED_LOCALES.map((locale, index) => [locale, roomsByLocale[index]])
+  ) as Record<Locale, Awaited<ReturnType<typeof getRooms>>>;
 
   return (
     <html suppressHydrationWarning>
@@ -49,7 +87,7 @@ export default async function VanGoghLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <VanGoghNavigation roomOptions={{'en-GB': enRooms, 'zh-TW': zhRooms}}>
+          <VanGoghNavigation roomOptions={roomOptions}>
             {children}
           </VanGoghNavigation>
         </ThemeProvider>
