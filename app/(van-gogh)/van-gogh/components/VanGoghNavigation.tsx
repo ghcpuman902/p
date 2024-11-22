@@ -3,13 +3,14 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react'
 import { usePathname, useSelectedLayoutSegments, useRouter } from 'next/navigation'
 import { Button, ButtonProps, buttonVariants } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, Flag, Play, Pause } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react'
 import { type Room, type Painting } from '../libs/types'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { ExhibitionMapDrawer } from './ExhibitionMapDrawer'
 import { ChronologyDrawer } from './ChronologyDrawer'
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES, Locale, getTranslation } from '../libs/localization'
+import { LanguageDrawer } from './LanguageDrawer'
 
 interface VanGoghNavigationProps {
     roomOptions: {
@@ -186,7 +187,20 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
     }
 
     // Add these new states and refs
-    const [hasUserInitiatedPlayback, setHasUserInitiatedPlayback] = useState(false);
+    const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+    useEffect(() => {
+        const handleOnline = () => setIsOffline(false);
+        const handleOffline = () => setIsOffline(true);
+
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
 
     // Function to safely set up new audio source and handle playback
     const setAudioSource = useCallback(async () => {
@@ -227,16 +241,28 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
     const playAudio = useCallback(async () => {
         if (audioRef.current) {
             try {
-                await audioRef.current.play()
-                setIsPlaying(true)
-                wasPlayingRef.current = true
+                if (isOffline) {
+                    const cache = await caches.open('van-gogh-assets');
+                    const audioPath = currentPaintingId 
+                        ? `/van-gogh-assets/${currentLocale}.${currentPaintingId}.aac`
+                        : `/van-gogh-assets/${currentLocale}.${currentRoomId}.aac`;
+                    const cachedResponse = await cache.match(audioPath);
+                    
+                    if (!cachedResponse) {
+                        throw new Error('Audio not cached');
+                    }
+                }
+                
+                await audioRef.current.play();
+                setIsPlaying(true);
+                wasPlayingRef.current = true;
             } catch (error) {
-                console.error('Error playing audio:', error)
-                setIsPlaying(false)
-                wasPlayingRef.current = false
+                console.error('Error playing audio:', error);
+                setIsPlaying(false);
+                wasPlayingRef.current = false;
             }
         }
-    }, [])
+    }, [isOffline, currentPaintingId, currentLocale, currentRoomId]);
 
     // Handle navigation while preserving audio state
     const handleNavigation = (url: string | null) => {
@@ -259,13 +285,16 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
     useEffect(() => {
         setAudioSource()
 
+        // Store ref in a variable that's captured in the closure
+        const audio = audioRef.current
+
         // Cleanup function runs before next effect and on unmount
         return () => {
-            if (audioRef.current) {
-                audioRef.current.pause()
-                audioRef.current.currentTime = 0
-                audioRef.current.src = ''
-                audioRef.current.load()
+            if (audio) {
+                audio.pause()
+                audio.currentTime = 0
+                audio.src = ''
+                audio.load()
             }
         }
     }, [pathname, setAudioSource])
@@ -419,19 +448,10 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                 <div className="flex gap-2 bg-transparent justify-end p-2">
                     <ChronologyDrawer lang={currentLocale} />
                     <ExhibitionMapDrawer lang={currentLocale} />
-                    <Button 
-                        size="icon" 
-                        className={`rounded-full h-10 flex items-center justify-center gap-2`} 
-                        asChild
-                        title={getTranslation(currentLocale, "language")}
-                    >
-                        <Link href={`/van-gogh/${
-                            SUPPORTED_LOCALES[
-                                (SUPPORTED_LOCALES.indexOf(currentLocale) + 1) % SUPPORTED_LOCALES.length
-                            ]}/${currentRoomId}${currentPaintingId ? `/${currentPaintingId}` : ''}`}>
-                            <Flag className="h-6 w-6" />
-                        </Link>
-                    </Button>
+                    <LanguageDrawer 
+                        currentLocale={currentLocale}
+                        rooms={rooms}
+                    />
                 </div>
             </nav>
 

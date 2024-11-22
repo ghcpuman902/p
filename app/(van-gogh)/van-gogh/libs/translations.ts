@@ -14,135 +14,10 @@ interface TranslationInterface {
 
 // Add helper to check if locale is Chinese
 export function isChineseLocale(locale: Locale): boolean {
-  return locale === "zh-TW" || locale === "zh-CN";
+    return locale === "zh-TW" || locale === "zh-CN";
 }
 
 export const translations: TranslationInterface = {
-    "next": {
-        "en-GB": "Next",
-        "zh-TW": "下一個",
-        "zh-CN": "下一个"
-    },
-    "playAudio": {
-        "en-GB": "Play Audio",
-        "zh-TW": "播放",
-        "zh-CN": "播放"
-    },
-    "end": {
-        "en-GB": "End",
-        "zh-TW": "結語",
-        "zh-CN": "结语"
-    },
-    "room": {
-        "en-GB": "Room",
-        "zh-TW": "展間",
-        "zh-CN": "展厅"
-    },
-    "language": {
-        "en-GB": "Language",
-        "zh-TW": "語言",
-        "zh-CN": "语言"
-    },
-    "exhibitionPlan": {
-        "en-GB": "Map",
-        "zh-TW": "地圖",
-        "zh-CN": "地图"
-    },
-    "chronology": {
-        "en-GB": "Timeline",
-        "zh-TW": "時間軸",
-        "zh-CN": "时间轴"
-    },
-    "chronologyTitle": {
-        "en-GB": "Chronology",
-        "zh-TW": "生平",
-        "zh-CN": "生平"
-    },
-    "yearsOld": {
-        "en-GB": "years old",
-        "zh-TW": "歲",
-        "zh-CN": "岁"
-    },
-    "chronologyFooter": {
-        "en-GB": "For more information about Van Gogh's life, as well as all his letters, visit vangoghletters.org. All letter quotes in the exhibition are taken from this source.",
-        "zh-TW": "更多有關梵谷生平及所有書信的資訊，請參考 vangoghletters.org. 展覽中所有書信引文均來自此來源。",
-        "zh-CN": "更多关于梵高生平及所有书信的信息，请参考 vangoghletters.org. 展览中所有书信引文均来自此来源。"
-    },
-    "exhibitionPlanTitle": {
-        "en-GB": "Exhibition plan",
-        "zh-TW": "展覽平面圖",
-        "zh-CN": "展览平面图"
-    },
-    "exit": {
-        "en-GB": "Exit",
-        "zh-TW": "出口",
-        "zh-CN": "出口"
-    },
-    "shop": {
-        "en-GB": "Shop",
-        "zh-TW": "商店",
-        "zh-CN": "商店"
-    },
-    "entrance": {
-        "en-GB": "Entrance",
-        "zh-TW": "入口",
-        "zh-CN": "入口"
-    },
-    "exhibitionRoom1": {
-        "en-GB": "Introduction",
-        "zh-TW": "介紹",
-        "zh-CN": "介绍"
-    },
-    "exhibitionRoom2": {
-        "en-GB": "The Garden:\nPoetic Interpretations",
-        "zh-TW": "花園：\n詩意的詮釋",
-        "zh-CN": "花园：\n诗意的诠释"
-    },
-    "exhibitionRoom3": {
-        "en-GB": "The Yellow House:\nAn Artist's Home",
-        "zh-TW": "黃色小屋：\n藝術家之家",
-        "zh-CN": "黄色小屋：\n艺术家之家"
-    },
-    "exhibitionRoom4": {
-        "en-GB": "Montmajour: A Series",
-        "zh-TW": "蒙馬茹：系列",
-        "zh-CN": "蒙马茹：系列"
-    },
-    "exhibitionRoom5": {
-        "en-GB": "Decoration",
-        "zh-TW": "裝飾",
-        "zh-CN": "装饰"
-    },
-    "exhibitionRoom6": {
-        "en-GB": "Variations on a Theme",
-        "zh-TW": "主題變奏",
-        "zh-CN": "主题变奏"
-    },
-    "offlineMode": {
-        "en-GB": "You are currently offline",
-        "zh-TW": "您目前處於離線狀態",
-        "zh-CN": "您当前处于离线状态"
-    },
-    "offlineAudioError": {
-        "en-GB": "Audio is not available offline",
-        "zh-TW": "離線狀態下無法播放音訊",
-        "zh-CN": "离线状态下无法播放音频"  
-    },
-    "pwaMode": {
-        "en-GB": "Gallery Mode Active",
-        "zh-TW": "展覽模式已啟用",
-        "zh-CN": "展馆模式已启用"
-    },
-    "pwaAudioError": {
-        "en-GB": "Audio guide not available. Please ensure content is downloaded.",
-        "zh-TW": "音頻導覽不可用。請確保內容已下載。",
-        "zh-CN": "音频导览不可用。请确保内容已下载。"
-    },
-    "imageLoadError": {
-        "en-GB": "Image not available. Please ensure content is downloaded.",
-        "zh-TW": "圖片不可用。請確保內容已下載。",
-        "zh-CN": "图片不可用。请确保内容已下载。"
-    },
     "chronologyData": {
         "en-GB": [
             {
@@ -632,7 +507,172 @@ export const translations: TranslationInterface = {
                     }
                 ]
             }
-        ]
+        ],
+    },
+    "next": {
+        "en-GB": "Next",
+        "zh-TW": "下一個",
+        "zh-CN": "下一个"
+    },
+    "playAudio": {
+        "en-GB": "Play Audio",
+        "zh-TW": "播放",
+        "zh-CN": "播放"
+    },
+    "end": {
+        "en-GB": "End",
+        "zh-TW": "結語",
+        "zh-CN": "结语"
+    },
+    "room": {
+        "en-GB": "Room",
+        "zh-TW": "展間",
+        "zh-CN": "展厅"
+    },
+    "language": {
+        "en-GB": "Language",
+        "zh-TW": "語言",
+        "zh-CN": "语言"
+    },
+    "exhibitionPlan": {
+        "en-GB": "Map",
+        "zh-TW": "地圖",
+        "zh-CN": "地图"
+    },
+    "chronology": {
+        "en-GB": "Timeline",
+        "zh-TW": "時間軸",
+        "zh-CN": "时间轴"
+    },
+    "chronologyTitle": {
+        "en-GB": "Chronology",
+        "zh-TW": "生平",
+        "zh-CN": "生平"
+    },
+    "yearsOld": {
+        "en-GB": "years old",
+        "zh-TW": "歲",
+        "zh-CN": "岁"
+    },
+    "chronologyFooter": {
+        "en-GB": "For more information about Van Gogh's life, as well as all his letters, visit vangoghletters.org. All letter quotes in the exhibition are taken from this source.",
+        "zh-TW": "更多有關梵谷生平及所有書信的資訊，請參考 vangoghletters.org. 展覽中所有書信引文均來自此來源。",
+        "zh-CN": "更多关于梵高生平及所有书信的信息，请参考 vangoghletters.org. 展览中所有书信引文均来自此来源。"
+    },
+    "exhibitionPlanTitle": {
+        "en-GB": "Exhibition plan",
+        "zh-TW": "展覽平面圖",
+        "zh-CN": "展览平面图"
+    },
+    "exit": {
+        "en-GB": "Exit",
+        "zh-TW": "出口",
+        "zh-CN": "出口"
+    },
+    "shop": {
+        "en-GB": "Shop",
+        "zh-TW": "商店",
+        "zh-CN": "商店"
+    },
+    "entrance": {
+        "en-GB": "Entrance",
+        "zh-TW": "入口",
+        "zh-CN": "入口"
+    },
+    "exhibitionRoom1": {
+        "en-GB": "Introduction",
+        "zh-TW": "介紹",
+        "zh-CN": "介绍"
+    },
+    "exhibitionRoom2": {
+        "en-GB": "The Garden:\nPoetic Interpretations",
+        "zh-TW": "花園：\n詩意的詮釋",
+        "zh-CN": "花园：\n诗意的诠释"
+    },
+    "exhibitionRoom3": {
+        "en-GB": "The Yellow House:\nAn Artist's Home",
+        "zh-TW": "黃色小屋：\n藝術家之家",
+        "zh-CN": "黄色小屋：\n艺术家之家"
+    },
+    "exhibitionRoom4": {
+        "en-GB": "Montmajour: A Series",
+        "zh-TW": "蒙馬茹：系列",
+        "zh-CN": "蒙马茹：系列"
+    },
+    "exhibitionRoom5": {
+        "en-GB": "Decoration",
+        "zh-TW": "裝飾",
+        "zh-CN": "装饰"
+    },
+    "exhibitionRoom6": {
+        "en-GB": "Variations on a Theme",
+        "zh-TW": "主題變奏",
+        "zh-CN": "主题变奏"
+    },
+    "offlineMode": {
+        "en-GB": "You are currently offline",
+        "zh-TW": "您目前處於離線狀態",
+        "zh-CN": "您当前处于离线状态"
+    },
+    "offlineAudioError": {
+        "en-GB": "Audio is not available offline",
+        "zh-TW": "離線狀態下無法播放音訊",
+        "zh-CN": "离线状态下无法播放音频"
+    },
+    "pwaMode": {
+        "en-GB": "Gallery Mode Active",
+        "zh-TW": "展覽模式已啟用",
+        "zh-CN": "展馆模式已启用"
+    },
+    "pwaAudioError": {
+        "en-GB": "Audio guide not available. Please ensure content is downloaded.",
+        "zh-TW": "音頻導覽不可用。請確保內容已下載。",
+        "zh-CN": "音频导览不可用。请确保内容已下载。"
+    },
+    "imageLoadError": {
+        "en-GB": "Image not available. Please ensure content is downloaded.",
+        "zh-TW": "圖片不可用。請確保內容已下載。",
+        "zh-CN": "图片不可用。请确保内容已下载。"
+    },
+    "languageName": {
+        "en-GB": "English",
+        "zh-TW": "繁體中文",
+        "zh-CN": "简体中文"
+    },
+    "startDownload": {
+        "en-GB": "Download Content",
+        "zh-TW": "下載內容",
+        "zh-CN": "下载内容"
+    },
+    "downloading": {
+        "en-GB": "Downloading...",
+        "zh-TW": "下載中...",
+        "zh-CN": "下载中..."
+    },
+    "filesDownloaded": {
+        "en-GB": "files downloaded",
+        "zh-TW": "個檔案已下載",
+        "zh-CN": "个文件已下载"
+    },
+    "downloadDescription": {
+        "en-GB": "Download content for offline viewing. This includes all audio guides and high-resolution images.",
+        "zh-TW": "下載內容以供離線瀏覽。包括所有語音導覽和高解析度圖片。",
+        "zh-CN": "下载内容以供离线浏览。包括所有语音导览和高分辨率图片。"
+    },
+    "offlineImageUnavailable": {
+        "en-GB": "Image unavailable offline",
+        "zh-TW": "離線狀態下無法顯示圖片",
+        "zh-CN": "离线状态下无法显示图片"
+    },
+    "offlineUncachedImage": {
+        "en-GB": "This image has not been cached for offline viewing",
+        "zh-TW": "此圖片尚未被快取以供離線瀏覽",
+        "zh-CN": "此图片尚未被缓存以供离线浏览"
+    },
+    "offlineCachedImage": {
+        "en-GB": "Image cached for offline viewing",
+        "zh-TW": "圖片已快取以供離線瀏覽",
+        "zh-CN": "图片已缓存以供离线浏览"
     }
     // Add more translations here
 };

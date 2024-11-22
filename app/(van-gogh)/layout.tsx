@@ -27,6 +27,22 @@ export const metadata: Metadata = {
       url: 'https://github.com/ghcpuman902/',
     }
   ],
+  manifest: '/van-gogh-assets/manifest.json',
+  icons: {
+    icon: [
+      { url: '/van-gogh-assets/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/van-gogh-assets/favicon.svg', type: 'image/svg+xml' },
+      { url: '/van-gogh-assets/favicon.ico' }
+    ],
+    apple: [
+      { url: '/van-gogh-assets/apple-touch-icon.png', sizes: '180x180' }
+    ],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: APP_DEFAULT_TITLE,
+  },
   formatDetection: {
     telephone: false,
   },

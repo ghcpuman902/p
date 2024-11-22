@@ -1,0 +1,37 @@
+{
+    "name": "Van Gogh Digital Guide",
+    "short_name": "Van Gogh Guide",
+    "description": "A digital guide to Van Gogh's gallery exhibition, offering multilingual support, in-depth artwork details, and AI-driven commentary.",
+    "start_url": "/van-gogh",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#000000",
+    "icons": [
+      {
+        "src": "/van-gogh-assets/favicon-96x96.png",
+        "sizes": "96x96",
+        "type": "image/png"
+      },
+      {
+        "src": "/van-gogh-assets/icon-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any maskable"
+      },
+      {
+        "src": "/van-gogh-assets/icon-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any maskable"
+      },
+      {
+        "src": "/van-gogh-assets/apple-touch-icon.png",
+        "sizes": "180x180",
+        "type": "image/png"
+      },
+      {
+        "src": "/van-gogh-assets/favicon.svg",
+        "type": "image/svg+xml"
+      }
+    ]
+}

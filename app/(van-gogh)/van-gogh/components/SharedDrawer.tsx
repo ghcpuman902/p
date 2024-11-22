@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useId } from 'react'
 import { Drawer } from 'vaul'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { clsx } from 'clsx'
@@ -13,11 +13,13 @@ interface SharedDrawerProps {
     children: React.ReactNode
     isOpen?: boolean
     onOpenChange?: (open: boolean) => void
+    description?: string
 }
 
 const snapPoints = ['340px', 1]
 
-export function SharedDrawer({ title, icon: Icon, children, isOpen, onOpenChange }: SharedDrawerProps) {
+export function SharedDrawer({ title, icon: Icon, children, isOpen, onOpenChange, description }: SharedDrawerProps) {
+    const descriptionId = useId()
     const [snap, setSnap] = useState<number | string | null>(snapPoints[0])
     const [isMobile, setIsMobile] = useState(false)
 
@@ -40,12 +42,20 @@ export function SharedDrawer({ title, icon: Icon, children, isOpen, onOpenChange
                         <span>{title}</span>
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-4xl h-[80vh] flex flex-col [--radius:1.5rem]">
+                <DialogContent 
+                    className="sm:max-w-4xl h-[80vh] flex flex-col [--radius:1.5rem]"
+                    aria-describedby={description ? descriptionId : undefined}
+                >
                     <DialogHeader className="flex-none m-0">
                         <DialogTitle className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl m-0">
                             {title}
                         </DialogTitle>
                     </DialogHeader>
+                    {description && (
+                        <div id={descriptionId} className="sr-only">
+                            {description}
+                        </div>
+                    )}
                     <div className="flex-1 h-auto flex flex-col overflow-y-auto">
                         {children}
                     </div>
