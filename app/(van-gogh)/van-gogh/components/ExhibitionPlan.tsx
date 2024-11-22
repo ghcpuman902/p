@@ -1,6 +1,6 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
-import { type Locale, getTranslation } from '@/lib/localization'
+import { type Locale, getTranslation } from '@/app/(van-gogh)/van-gogh/libs/localization'
 
 interface SVGMapProps {
   lang: Locale

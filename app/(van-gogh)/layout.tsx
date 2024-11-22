@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
-import { getRooms } from './van-gogh/utils/getRooms'
+import { getRooms } from './van-gogh/libs/getRooms'
 import { VanGoghNavigation } from './van-gogh/components/VanGoghNavigation'
-import { SUPPORTED_LOCALES, type Locale } from '@/lib/localization'
+import { SUPPORTED_LOCALES, type Locale } from '@/app/(van-gogh)/van-gogh/libs/localization'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -27,12 +27,6 @@ export const metadata: Metadata = {
       url: 'https://github.com/ghcpuman902/',
     }
   ],
-  manifest: '/manifest.json',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: APP_DEFAULT_TITLE,
-  },
   formatDetection: {
     telephone: false,
   },

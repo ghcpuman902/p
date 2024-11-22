@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { Clock } from 'lucide-react'
 import { SharedDrawer } from './SharedDrawer'
-import { chronologyData } from '@/lib/translations'
-import { type Locale, getTranslation } from '@/lib/localization'
+import { chronologyData } from '../libs/translations'
+import { type Locale, getTranslation } from '../libs/localization'
 
 export function ChronologyDrawer({ lang }: { lang: Locale }) {
     const [activeSection, setActiveSection] = useState('')

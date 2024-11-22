@@ -1,7 +1,7 @@
 const SUPPORTED_LOCALES = ['en-GB', 'zh-TW', 'zh-CN'] as const;
 type Locale = typeof SUPPORTED_LOCALES[number];
 const DEFAULT_LOCALE = SUPPORTED_LOCALES[0];
-import { translations } from '../app/(van-gogh)/van-gogh/libs/translations';
+import { translations } from './translations';
 
 export interface Translations {
     [key: string]: {

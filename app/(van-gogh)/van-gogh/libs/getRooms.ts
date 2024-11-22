@@ -1,10 +1,10 @@
 import { promises as fs } from 'fs'
-import { Painting, Room } from '../types'
-import { Locale, DEFAULT_LOCALE } from '@/lib/localization'
+import { Painting, Room } from './types'
+import { Locale, DEFAULT_LOCALE } from './localization'
 
 export async function getRooms(locale: Locale = DEFAULT_LOCALE): Promise<Room[]> {
   const fileName = `${locale.slice(0,2).toLowerCase()}-${locale.slice(3).toUpperCase()}_rooms.json`
-  const filePath = `${process.cwd()}/public/van-gogh/${fileName}`
+  const filePath = `${process.cwd()}/public/van-gogh-assets/${fileName}`
 
   try {
     const roomsJson = await fs.readFile(filePath, 'utf8')

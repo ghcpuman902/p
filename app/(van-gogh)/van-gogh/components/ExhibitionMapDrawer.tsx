@@ -3,7 +3,7 @@
 import { Map } from 'lucide-react'
 import { SharedDrawer } from './SharedDrawer'
 import { ExhibitionPlan } from "./ExhibitionPlan"
-import { type Locale, getTranslation } from '@/lib/localization'
+import { type Locale, getTranslation } from '@/app/(van-gogh)/van-gogh/libs/localization'
 
 interface ExhibitionMapDrawerProps {
     lang: Locale

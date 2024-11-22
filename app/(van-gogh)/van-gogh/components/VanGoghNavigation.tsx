@@ -4,16 +4,12 @@ import React, { useRef, useEffect, useState, useCallback } from 'react'
 import { usePathname, useSelectedLayoutSegments, useRouter } from 'next/navigation'
 import { Button, ButtonProps, buttonVariants } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Flag, Play, Pause } from 'lucide-react'
-import { type Room, type Painting } from '../types'
+import { type Room, type Painting } from '../libs/types'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { ExhibitionMapDrawer } from './ExhibitionMapDrawer'
 import { ChronologyDrawer } from './ChronologyDrawer'
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES, Locale, getTranslation } from '@/lib/localization'
-
-interface SafariNavigator extends Navigator {
-    standalone?: boolean;
-}
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES, Locale, getTranslation } from '../libs/localization'
 
 interface VanGoghNavigationProps {
     roomOptions: {
@@ -190,16 +186,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
     }
 
     // Add these new states and refs
-    const [isPWA, setIsPWA] = useState(false);
     const [hasUserInitiatedPlayback, setHasUserInitiatedPlayback] = useState(false);
-
-    // Check if running as PWA
-    useEffect(() => {
-        const isPWAMode = window.matchMedia('(display-mode: standalone)').matches || 
-                         (window.navigator as SafariNavigator).standalone || 
-                         document.referrer.includes('android-app://');
-        setIsPWA(isPWAMode);
-    }, []);
 
     // Function to safely set up new audio source and handle playback
     const setAudioSource = useCallback(async () => {
@@ -214,8 +201,8 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
 
         // Set up new audio source
         const audioPath = currentPaintingId 
-            ? `/van-gogh/${currentLocale}.${currentPaintingId}.aac`
-            : `/van-gogh/${currentLocale}.${currentRoomId}.aac`
+            ? `/van-gogh-assets/${currentLocale}.${currentPaintingId}.aac`
+            : `/van-gogh-assets/${currentLocale}.${currentRoomId}.aac`
 
         setAudioSrc(audioPath)
         
@@ -360,11 +347,6 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
 
     return (
         <>
-            {isPWA && (
-                <div className="fixed top-0 left-0 right-0 bg-blue-500 text-white p-2 text-center z-50">
-                    {getTranslation(locale, "pwaMode")}
-                </div>
-            )}
             <nav className="fixed top-0 left-0 right-0">
                 <div className="max-w-full w-screen pt-2 pb-1 bg-zinc-100/80 dark:bg-zinc-900/80 backdrop-blur-lg backdrop-saturate-150 backdrop-brightness-75">
                     <div
@@ -439,7 +421,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                     <ExhibitionMapDrawer lang={currentLocale} />
                     <Button 
                         size="icon" 
-                        className={`rounded-full h-10 flex items-center justify-center gap-2 ${isPWA ? 'text-blue-500' : ''}`} 
+                        className={`rounded-full h-10 flex items-center justify-center gap-2`} 
                         asChild
                         title={getTranslation(currentLocale, "language")}
                     >
@@ -513,7 +495,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                     onMouseLeave={() => setIsDragging(false)}
                 >
                     <div 
-                        className="h-full bg-blue-500 transition-none"
+                        className="h-full bg-blue-500 transition-all duration-100 ease-in-out" 
                         style={{ width: `${progress}%` }}
                     />
                 </div>
@@ -523,7 +505,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                     ref={audioRef}
                     src={audioSrc}
                     onError={(e) => {
-                        console.error("Audio Error:", e)
+                        console.warn("Audio Error:", e)
                         setIsPlaying(false)
                         wasPlayingRef.current = false
                     }}

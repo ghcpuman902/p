@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { Room, Painting } from '../types';
+import { Room, Painting } from '../libs/types';
 import { cn } from '@/lib/utils';
-import { getTranslation, Locale } from '@/lib/localization';
+import { getTranslation, Locale } from '@/app/(van-gogh)/van-gogh/libs/localization';
 import { PaintingImage } from './PaintingImage';
 
 // Helper function to transform text

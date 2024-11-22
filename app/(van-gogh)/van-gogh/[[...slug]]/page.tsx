@@ -1,8 +1,8 @@
 import { notFound, redirect } from 'next/navigation'
-import { type Room, type Painting } from '../types'
-import { getRooms } from '../utils/getRooms'
+import { type Room, type Painting } from '../libs/types'
+import { getRooms } from '../libs/getRooms'
 import PaintingDetails from '../components/PaintingDetails'
-import { Locale, SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/lib/localization'
+import { Locale, SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/app/(van-gogh)/van-gogh/libs/localization'
 // import { InstallPrompt } from '../components/InstallPrompt'
 
 

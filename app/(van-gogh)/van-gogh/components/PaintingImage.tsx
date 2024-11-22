@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { getTranslation, Locale } from '@/lib/localization';
+import { getTranslation, Locale } from '@/app/(van-gogh)/van-gogh/libs/localization';
 import { cn } from '@/lib/utils';
 
 interface PaintingImageProps {
@@ -14,7 +14,7 @@ interface PaintingImageProps {
 
 export function PaintingImage({ imageUrl, description, locale, isPainting = true }: PaintingImageProps) {
   const [imageLoadError, setImageLoadError] = useState<string>('');
-  const [imageSrc] = useState<string>(`/van-gogh/${imageUrl}`);
+  const imageSrc = `/van-gogh-assets/${imageUrl}`;
 
   return (
     <div className="flex flex-col items-center my-4">

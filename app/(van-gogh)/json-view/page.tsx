@@ -1,4 +1,4 @@
-import { getRooms } from "../van-gogh/utils/getRooms";
+import { getRooms } from "../van-gogh/libs/getRooms";
 
 
 export default async function Page() {
