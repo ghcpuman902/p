@@ -14,11 +14,13 @@ interface PaintingImageProps {
 
 export function PaintingImage({ imageUrl, description, locale, isPainting = true }: PaintingImageProps) {
   const [imageLoadError, setImageLoadError] = useState<string>('');
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [isOffline, setIsOffline] = useState(false);
   const [isCached, setIsCached] = useState<boolean>(false);
   const imageSrc = `/van-gogh-assets/${imageUrl}`;
 
   useEffect(() => {
+    setIsOffline(!window.navigator.onLine);
+    
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
 

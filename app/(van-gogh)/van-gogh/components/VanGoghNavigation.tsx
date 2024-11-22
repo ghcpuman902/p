@@ -186,10 +186,13 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
         return null;
     }
 
-    // Add these new states and refs
-    const [isOffline, setIsOffline] = useState(!navigator.onLine);
+    // Modify the isOffline state initialization
+    const [isOffline, setIsOffline] = useState(false);
 
     useEffect(() => {
+        // Set initial online status only after component mounts
+        setIsOffline(!window.navigator.onLine);
+
         const handleOnline = () => setIsOffline(false);
         const handleOffline = () => setIsOffline(true);
 
