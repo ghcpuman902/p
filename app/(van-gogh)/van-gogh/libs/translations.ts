@@ -673,6 +673,16 @@ export const translations: TranslationInterface = {
         "en-GB": "Image cached for offline viewing",
         "zh-TW": "圖片已快取以供離線瀏覽",
         "zh-CN": "图片已缓存以供离线浏览"
+    },
+    "getRandomNumber": {
+        "en-GB": "Get Random Number",
+        "zh-TW": "取得隨機數字",
+        "zh-CN": "获取随机数字"
+    },
+    "randomNumber": {
+        "en-GB": "Random Number",
+        "zh-TW": "隨機數字",
+        "zh-CN": "随机数字"
     }
     // Add more translations here
 };

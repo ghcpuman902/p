@@ -113,7 +113,7 @@ module.exports = async (phase) => {
       disable: process.env.NODE_ENV === 'development',
       manifestTransforms: [manifestTransform],
       additionalPrecacheEntries: [
-        { url: '/van-gogh/~offline', revision },
+        { url: '/van-gogh/offline', revision },
         { url: '/van-gogh-assets/fallback-image.jpg', revision },
         { url: '/van-gogh-assets/silence.aac', revision },
         ...imageEntries, // Add the dynamically generated image entries

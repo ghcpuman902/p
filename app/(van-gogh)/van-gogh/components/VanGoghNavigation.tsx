@@ -28,7 +28,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
     // but refs persist across route changes. We use this to track audio state
     const wasPlayingRef = useRef(false)
     const audioRef = useRef<HTMLAudioElement | null>(null)
-    
+
     // These states will reset on route changes, but that's okay because
     // we use wasPlayingRef to determine if we should restart playback
     const [isPlaying, setIsPlaying] = useState(false)
@@ -40,7 +40,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
         const expandedSegs = segs.flatMap(seg => seg.split('/'))
         const localeSegments = expandedSegs
             .filter(seg => SUPPORTED_LOCALES.includes(seg as Locale))
-        return localeSegments.length > 0 
+        return localeSegments.length > 0
             ? localeSegments[localeSegments.length - 1] as Locale
             : DEFAULT_LOCALE
     }
@@ -52,7 +52,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
 
     // More defensive URL parsing
     const pathParts = pathname.split('van-gogh/')[1]?.split('/') || []
-    
+
     // Clean up pathParts to handle multiple locales
     const cleanPathParts = (() => {
         const localeIndexes = pathParts
@@ -205,67 +205,107 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
         };
     }, []);
 
-    // Function to safely set up new audio source and handle playback
+    // Add this new function near the top of the component
+    const isValidAudioPath = useCallback((paintingId: string | undefined, roomId: string | undefined) => {
+        // If we have neither ID, path is invalid
+        if (typeof paintingId !== 'string' && typeof roomId !== 'string') return false;
+        
+        // If we have a roomId, check it's valid format (room-1 through room-9)
+        if (roomId) {
+            const validRoomFormat = /^room-\d$/.test(roomId);
+            // If we only have roomId, that's valid as long as format is correct
+            if (!paintingId) return validRoomFormat;
+            
+            // If we have both, check painting format too
+            const validPaintingFormat = /^painting-(\d{1,2}|\d-\d{1,2})$/.test(paintingId);
+            return validRoomFormat && validPaintingFormat;
+        }
+        
+        // If we only have paintingId, check its format
+        return paintingId ? /^painting-(\d{1,2}|\d-\d{1,2})$/.test(paintingId) : false;
+    }, []);
+
+    // Modify setAudioSource function
     const setAudioSource = useCallback(async () => {
-        // Always clean up existing audio first to prevent memory leaks
-        // and avoid the AbortError when loading new audio
+        // Don't proceed if IDs are invalid
+        if (!isValidAudioPath(currentPaintingId, currentRoomId)) {
+            console.warn('Invalid audio path parameters detected:', currentPaintingId, currentRoomId);
+            setAudioSrc(null);
+            setIsPlaying(false);
+            wasPlayingRef.current = false;
+            return;
+        }
+
+        // Clean up existing audio first
         if (audioRef.current) {
-            audioRef.current.pause()
-            audioRef.current.currentTime = 0
-            audioRef.current.src = ''
-            audioRef.current.load()
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+            audioRef.current.src = '';
+            audioRef.current.load();
         }
 
         // Set up new audio source
-        const audioPath = currentPaintingId 
+        const audioPath = currentPaintingId
             ? `/van-gogh-assets/${currentLocale}.${currentPaintingId}.aac`
-            : `/van-gogh-assets/${currentLocale}.${currentRoomId}.aac`
+            : `/van-gogh-assets/${currentLocale}.${currentRoomId}.aac`;
 
-        setAudioSrc(audioPath)
-        
-        // Wait for next tick to ensure audio element has updated
-        // This prevents race conditions with audio loading
-        await new Promise(resolve => setTimeout(resolve, 0))
-        
-        // If audio was playing before navigation, resume playback
-        if (wasPlayingRef.current && audioRef.current) {
-            try {
-                await audioRef.current.play()
-                setIsPlaying(true)
-            } catch (error) {
-                console.error('Error playing audio:', error)
-                setIsPlaying(false)
-                wasPlayingRef.current = false
-            }
-        }
-    }, [currentLocale, currentPaintingId, currentRoomId])
-
-    // Function to safely start audio playback
-    const playAudio = useCallback(async () => {
-        if (audioRef.current) {
-            try {
-                if (isOffline) {
-                    const cache = await caches.open('van-gogh-assets');
-                    const audioPath = currentPaintingId 
-                        ? `/van-gogh-assets/${currentLocale}.${currentPaintingId}.aac`
-                        : `/van-gogh-assets/${currentLocale}.${currentRoomId}.aac`;
-                    const cachedResponse = await cache.match(audioPath);
-                    
-                    if (!cachedResponse) {
-                        throw new Error('Audio not cached');
-                    }
-                }
-                
-                await audioRef.current.play();
-                setIsPlaying(true);
-                wasPlayingRef.current = true;
-            } catch (error) {
-                console.error('Error playing audio:', error);
+        // Verify the audio file exists before setting it
+        try {
+            const response = await fetch(audioPath, { method: 'HEAD' });
+            if (!response.ok) {
+                console.warn(`Audio file not found: ${audioPath}`);
+                setAudioSrc(null);
                 setIsPlaying(false);
                 wasPlayingRef.current = false;
+                return;
             }
+            
+            setAudioSrc(audioPath);
+
+            // Wait for next tick to ensure audio element has updated
+            await new Promise(resolve => setTimeout(resolve, 0));
+
+            if (wasPlayingRef.current && audioRef.current) {
+                try {
+                    await audioRef.current.play();
+                    setIsPlaying(true);
+                } catch (error) {
+                    console.error('Error playing audio:', error);
+                    setIsPlaying(false);
+                    wasPlayingRef.current = false;
+                }
+            }
+        } catch (error) {
+            console.warn('Error checking audio file:', error);
+            setAudioSrc(null);
+            setIsPlaying(false);
+            wasPlayingRef.current = false;
         }
-    }, [isOffline, currentPaintingId, currentLocale, currentRoomId]);
+    }, [currentLocale, currentPaintingId, currentRoomId, isValidAudioPath]);
+
+    // Modify playAudio function
+    const playAudio = useCallback(async () => {
+        if (!audioRef.current || !audioSrc) return;
+
+        try {
+            if (isOffline) {
+                const cache = await caches.open('van-gogh-assets');
+                const cachedResponse = await cache.match(audioSrc);
+
+                if (!cachedResponse) {
+                    throw new Error('Audio not cached');
+                }
+            }
+
+            await audioRef.current.play();
+            setIsPlaying(true);
+            wasPlayingRef.current = true;
+        } catch (error) {
+            console.warn('Error playing audio:', error);
+            setIsPlaying(false);
+            wasPlayingRef.current = false;
+        }
+    }, [isOffline, audioSrc]);
 
     // Handle navigation while preserving audio state
     const handleNavigation = (url: string | null) => {
@@ -318,18 +358,18 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
     // Add these new handlers for progress bar interaction
     const handleProgressBarInteraction = (event: React.MouseEvent | React.TouchEvent) => {
         if (!audioRef.current) return;
-        
+
         const progressBar = event.currentTarget;
         const rect = progressBar.getBoundingClientRect();
-        
+
         // Get X position from either mouse or touch event
-        const clientX = 'touches' in event 
-            ? event.touches[0].clientX 
+        const clientX = 'touches' in event
+            ? event.touches[0].clientX
             : event.clientX;
-        
+
         const position = (clientX - rect.left) / rect.width;
         const newTime = position * audioRef.current.duration;
-        
+
         // Update audio position
         audioRef.current.currentTime = Math.max(0, Math.min(newTime, audioRef.current.duration));
         setProgress(position * 100);
@@ -342,18 +382,18 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
     useEffect(() => {
         const handleMove = (event: MouseEvent | TouchEvent) => {
             if (!isDragging || !audioRef.current) return;
-            
+
             const progressBar = document.querySelector('.progress-bar');
             if (!progressBar) return;
-            
+
             const rect = progressBar.getBoundingClientRect();
-            const clientX = 'touches' in event 
-                ? event.touches[0].clientX 
+            const clientX = 'touches' in event
+                ? event.touches[0].clientX
                 : event.clientX;
-            
+
             const position = (clientX - rect.left) / rect.width;
             const newTime = position * audioRef.current.duration;
-            
+
             audioRef.current.currentTime = Math.max(0, Math.min(newTime, audioRef.current.duration));
             setProgress(Math.max(0, Math.min(position * 100, 100)));
         };
@@ -379,7 +419,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
 
     return (
         <>
-            <nav className="fixed top-0 left-0 right-0">
+            <nav className="fixed top-0 left-0 right-0 z-10">
                 <div className="max-w-full w-screen pt-2 pb-1 bg-zinc-100/80 dark:bg-zinc-900/80 backdrop-blur-lg backdrop-saturate-150 backdrop-brightness-75">
                     <div
                         ref={roomsContainerRef}
@@ -451,10 +491,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                 <div className="flex gap-2 bg-transparent justify-end p-2">
                     <ChronologyDrawer lang={currentLocale} />
                     <ExhibitionMapDrawer lang={currentLocale} />
-                    <LanguageDrawer 
-                        currentLocale={currentLocale}
-                        rooms={rooms}
-                    />
+                    <LanguageDrawer currentLocale={currentLocale}/>
                 </div>
             </nav>
 
@@ -462,7 +499,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                 {children}
             </main>
 
-            <div className="fixed bottom-0 left-0 right-0">
+            <div className="fixed bottom-0 left-0 right-0 z-10">
                 <div className="flex justify-stretch gap-2 bg-transparent">
                     <BottomNaButton
                         className="rounded-tr-xl"
@@ -496,7 +533,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                     </BottomNaButton>
                 </div>
 
-                <div 
+                <div
                     className="w-full h-4 bg-gray-200 dark:bg-gray-700 cursor-pointer progress-bar touch-none"
                     onClick={handleProgressBarInteraction}
                     onTouchStart={(e) => {
@@ -517,8 +554,8 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                     onMouseUp={() => setIsDragging(false)}
                     onMouseLeave={() => setIsDragging(false)}
                 >
-                    <div 
-                        className="h-full bg-blue-500 transition-all duration-100 ease-in-out" 
+                    <div
+                        className="h-full bg-blue-500 transition-all duration-100 ease-in-out"
                         style={{ width: `${progress}%` }}
                     />
                 </div>

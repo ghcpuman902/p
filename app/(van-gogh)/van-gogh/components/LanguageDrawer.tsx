@@ -1,72 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Flag } from 'lucide-react'
 import { SharedDrawer } from './SharedDrawer'
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
 import { SUPPORTED_LOCALES, Locale, getTranslation } from '../libs/localization'
-import { prefetchAssets, getCacheStatus } from '../libs/prefetchAssets'
-import { type Room } from '../libs/types'
 import { useRouter } from 'next/navigation'
 
 interface LanguageDrawerProps {
     currentLocale: Locale
-    rooms: Room[]
 }
 
-export function LanguageDrawer({ currentLocale, rooms }: LanguageDrawerProps) {
+export function LanguageDrawer({ currentLocale }: LanguageDrawerProps) {
     const router = useRouter()
-    const [downloadProgress, setDownloadProgress] = useState<{
-        cachedAssets: number
-        totalAssets: number
-        status: 'idle' | 'downloading' | 'complete' | 'error'
-    }>({
-        cachedAssets: 0,
-        totalAssets: 0,
-        status: 'idle'
-    })
-
-    // Check cache status when drawer opens
-    useEffect(() => {
-        getCacheStatus(currentLocale).then(status => {
-            const totalAssets = rooms.reduce((acc, room) => {
-                // Count: room audio + room image (if exists) + (painting audio + painting image) per painting
-                return acc + 1 + (room.roomImage ? 1 : 0) + room.paintings.reduce((acc, painting) => {
-                    return acc + 1 + (painting.image ? 1 : 0)
-                }, 0)
-            }, 0)
-            
-            setDownloadProgress(prev => ({
-                ...prev,
-                cachedAssets: status.cachedAssets,
-                totalAssets
-            }))
-        })
-    }, [currentLocale, rooms])
-
-    const handleDownloadAssets = async (locale: Locale) => {
-        setDownloadProgress(prev => ({ ...prev, status: 'downloading' }))
-        
-        try {
-            const results = await prefetchAssets(locale, rooms)
-            const successCount = results.filter(r => 
-                r.status === 'cached' || r.status === 'already-cached'
-            ).length
-            
-            setDownloadProgress(prev => ({
-                ...prev,
-                cachedAssets: successCount,
-                status: 'complete'
-            }))
-        } catch (error) {
-            console.error('Download failed:', error)
-            setDownloadProgress(prev => ({ ...prev, status: 'error' }))
-        }
-    }
+    const [randomNumber, setRandomNumber] = useState<number | null>(null)
+    const [error, setError] = useState<string | null>(null)
 
     const handleLanguageChange = (locale: Locale) => {
-        // Update URL to new locale
         const newPath = window.location.pathname.replace(
             /\/van-gogh\/[^/]+/,
             `/van-gogh/${locale}`
@@ -74,16 +24,67 @@ export function LanguageDrawer({ currentLocale, rooms }: LanguageDrawerProps) {
         router.push(newPath)
     }
 
+    const handleGetRandomNumber = async () => {
+        setError(null) // Reset error state
+        
+        if (!('serviceWorker' in navigator)) {
+            console.log('Service Worker not supported');
+            setError('Service Worker not supported');
+            return;
+        }
+
+        if (!navigator.serviceWorker.controller) {
+            console.log('Service Worker not controlling the page');
+            setError('Service Worker not ready. Please refresh the page.');
+            return;
+        }
+
+        try {
+            // Create a message channel
+            const messageChannel = new MessageChannel();
+            
+            // Create a promise that will reject if we don't get a response within 3 seconds
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Service Worker response timeout')), 3000);
+            });
+
+            const messagePromise = new Promise((resolve) => {
+                messageChannel.port1.onmessage = (event) => {
+                    console.log('Received response:', event.data);
+                    resolve(event.data);
+                };
+            });
+
+            console.log('Sending message to Service Worker...');
+            navigator.serviceWorker.controller.postMessage(
+                { type: 'GET_RANDOM_NUMBER' },
+                [messageChannel.port2]
+            );
+
+            // Wait for either the response or timeout
+            const response = await Promise.race([messagePromise, timeoutPromise]);
+            if (response && typeof response === 'object' && 'randomNumber' in response) {
+                setRandomNumber(response.randomNumber as number);
+            } else {
+                setError('Unexpected response format from Service Worker');
+            }
+            
+        } catch (err) {
+            console.error('Error communicating with Service Worker:', err);
+            setError(err instanceof Error ? err.message : 'Failed to get random number');
+        }
+    }
+
     return (
         <SharedDrawer
             title={getTranslation(currentLocale, "language")}
             icon={Flag}
-            description={getTranslation(currentLocale, "downloadDescription")}
+            description={getTranslation(currentLocale, "selectLanguage")}
         >
             <div className="p-4 space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {SUPPORTED_LOCALES.map((locale) => (
-                        <div key={locale} className="space-y-2">
+                        <div key={locale}>
                             <Button
                                 variant={locale === currentLocale ? "secondary" : "outline"}
                                 className="w-full"
@@ -91,41 +92,39 @@ export function LanguageDrawer({ currentLocale, rooms }: LanguageDrawerProps) {
                             >
                                 {getTranslation(locale, "languageName")}
                             </Button>
-
-                            {locale === currentLocale && (
-                                <div className="space-y-2">
-                                    <Progress 
-                                        value={downloadProgress.totalAssets 
-                                            ? (downloadProgress.cachedAssets / downloadProgress.totalAssets) * 100 
-                                            : 0
-                                        } 
-                                    />
-                                    
-                                    <p className="text-sm text-muted-foreground text-center">
-                                        {downloadProgress.cachedAssets} / {downloadProgress.totalAssets} {getTranslation(currentLocale, "filesDownloaded")}
-                                    </p>
-
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="w-full"
-                                        onClick={() => handleDownloadAssets(locale)}
-                                        disabled={downloadProgress.status === 'downloading'}
-                                    >
-                                        {downloadProgress.status === 'downloading' 
-                                            ? getTranslation(currentLocale, "downloading")
-                                            : getTranslation(currentLocale, "startDownload")
-                                        }
-                                    </Button>
-                                </div>
-                            )}
                         </div>
                     ))}
                 </div>
 
-                <p className="text-sm text-muted-foreground">
-                    {getTranslation(currentLocale, "downloadDescription")}
-                </p>
+                <div className="space-y-2">
+                    <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={handleGetRandomNumber}
+                    >
+                        {getTranslation(currentLocale, "getRandomNumber")}
+                    </Button>
+                    
+                    {randomNumber !== null && (
+                        <p className="text-center text-sm">
+                            {getTranslation(currentLocale, "randomNumber")}: {randomNumber}
+                        </p>
+                    )}
+
+                    {error && (
+                        <p className="text-center text-sm text-red-500">
+                            {error}
+                        </p>
+                    )}
+
+                    <div className="text-center text-xs text-gray-500">
+                        Service Worker Status: {
+                            navigator?.serviceWorker?.controller 
+                                ? 'Active' 
+                                : 'Not Active'
+                        }
+                    </div>
+                </div>
             </div>
         </SharedDrawer>
     )

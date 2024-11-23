@@ -81,7 +81,10 @@ export function SharedDrawer({ title, icon: Icon, children, isOpen, onOpenChange
             </Drawer.Trigger>
             <Drawer.Overlay className="fixed inset-0 bg-black/40" />
             <Drawer.Portal>
-                <Drawer.Content className="fixed flex flex-col bg-white dark:bg-zinc-950 border border-gray-400 dark:border-zinc-600 border-b-none rounded-t-3xl bottom-0 left-0 right-0 h-full max-h-[97%] mx-[-1px] drawer-content">
+                <Drawer.Content 
+                    className="fixed flex flex-col bg-white dark:bg-zinc-950 border border-gray-400 dark:border-zinc-600 border-b-none rounded-t-3xl bottom-0 left-0 right-0 h-full max-h-[97%] mx-[-1px] drawer-content z-50"
+                    aria-describedby={description ? descriptionId : undefined}
+                >
                     <div className="flex flex-col max-w-md mx-auto w-full h-full">
                         <div className="px-4 pt-5 pb-2 bg-white dark:bg-zinc-950 shadow rounded-t-3xl">
                             <Drawer.Title className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl mb-4">

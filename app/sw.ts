@@ -16,14 +16,26 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope;
 
-const PRECACHE_ASSETS = [
-  '/offline',
-  '/van-gogh-assets/fallback-image.jpg',
-  '/van-gogh-assets/silence.aac'
-];
+/* The `const PRECACHE_ASSETS` array is defining a list of assets that should be precached in the
+service worker. Precaching refers to storing these assets in the cache when the service worker is
+installed, so they can be accessed quickly later on, even when the user is offline. */
+// const PRECACHE_ASSETS = [
+//   '/van-gogh/~offline',
+//   '/van-gogh-assets/fallback-image.jpg',
+//   '/van-gogh-assets/silence.aac'
+// ];
+
+// Add message handler
+addEventListener('message', (event) => {
+  console.log('Received message:', event.data);
+  if (event.data.type === 'GET_RANDOM_NUMBER') {
+    const randomNumber = Math.floor(Math.random() * 100) + 1;
+    event.ports[0].postMessage({ randomNumber });
+  }
+});
 
 const serwist = new Serwist({
-  precacheEntries: [...(self.__SW_MANIFEST || []), ...PRECACHE_ASSETS],
+  precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: false,
@@ -114,54 +126,3 @@ const serwist = new Serwist({
 
 // Register event listeners
 serwist.addEventListeners();
-
-// // Enhanced offline fallback handler
-// self.addEventListener('fetch', event => {
-//   if (event.request.mode === 'navigate') {
-//     event.respondWith(
-//       (async () => {
-//         try {
-//           // Try navigation preload
-//           const preloadResponse = await event.preloadResponse;
-//           if (preloadResponse) return preloadResponse;
-
-//           // Try network
-//           try {
-//             const networkResponse = await fetch(event.request);
-//             if (networkResponse.ok) return networkResponse;
-//             throw new Error('Network response was not ok');
-//           } catch (error) {
-//             console.warn('Network fetch error:', error);
-//             // Network failed, try cache
-//             const cache = await caches.open('van-gogh-pages');
-//             const cachedResponse = await cache.match(event.request, {
-//               ignoreSearch: true
-//             });
-//             if (cachedResponse) return cachedResponse;
-
-//             // If cache fails, return offline page
-//             const offlineResponse = await cache.match('/offline');
-//             if (offlineResponse) return offlineResponse;
-
-//             // If all fails, return a basic offline response
-//             return new Response(
-//               `<html><body><h1>Offline</h1><p>Please check your connection.</p><h2>Error:</h2><code><pre>${error?.toString?.() || JSON.stringify(error, null, 2)}</pre></code></body></html>`,
-//               {
-//                 headers: { 'Content-Type': 'text/html' },
-//               }
-//             );
-//           }
-//         } catch (error) {
-//           console.error('Offline fallback error:', error);
-//           // Final fallback
-//           return new Response(
-//             '<html><body><h1>Offline</h1><p>Please check your connection.</p></body></html>',
-//             {
-//               headers: { 'Content-Type': 'text/html' },
-//             }
-//           );
-//         }
-//       })()
-//     );
-//   }
-// });

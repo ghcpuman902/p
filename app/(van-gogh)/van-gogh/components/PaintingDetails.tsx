@@ -65,7 +65,7 @@ function PaintingDetails({ currentRoom, currentPainting, locale }: PaintingDetai
 
   return (
     <div className={cn(
-      "w-full h-full min-h-screen pb-[calc(48px+1rem)]",
+      "z-0 w-full h-full min-h-screen pb-[calc(48px+1rem)]",
       !currentPainting && "bg-secondary text-white"
     )}>
       <article className={cn(

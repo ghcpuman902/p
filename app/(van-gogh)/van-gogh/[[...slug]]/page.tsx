@@ -3,11 +3,18 @@ import { type Room, type Painting } from '../libs/types'
 import { getRooms } from '../libs/getRooms'
 import PaintingDetails from '../components/PaintingDetails'
 import { Locale, SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/app/(van-gogh)/van-gogh/libs/localization'
+import OfflinePage from './Offline'
 // import { InstallPrompt } from '../components/InstallPrompt'
 
 
 export async function generateStaticParams(): Promise<{ slug: string[] }[]> {
   const allParams = []
+
+  // Add offline route for each locale
+  allParams.push({ slug: ['offline'] })
+  for (const locale of SUPPORTED_LOCALES) {
+    allParams.push({ slug: [locale, 'offline'] })
+  }
 
   for (const locale of SUPPORTED_LOCALES) {
     const rooms = await getRooms(locale as Locale)
@@ -22,12 +29,15 @@ export async function generateStaticParams(): Promise<{ slug: string[] }[]> {
       ...rooms.map((room: Room) => ({
         slug: [locale, room.id]
       })),
-      // Painting numbers
-      ...rooms.flatMap((room: Room) => 
-        room.paintings.map((painting: Painting) => ({
+      // Painting numbers (both with and without locale)
+      ...rooms.flatMap((room: Room) => [
+        ...room.paintings.map((painting: Painting) => ({
           slug: [locale, `painting-${painting.paintingNumber}`]
+        })),
+        ...room.paintings.map((painting: Painting) => ({
+          slug: [locale, painting.paintingNumber]
         }))
-      )
+      ])
     ]
     allParams.push(...localeParams)
   }
@@ -43,11 +53,15 @@ export async function generateStaticParams(): Promise<{ slug: string[] }[]> {
     ...defaultRooms.map((room: Room) => ({
       slug: [room.id]
     })),
-    ...defaultRooms.flatMap((room: Room) => 
-      room.paintings.map((painting: Painting) => ({
+    // Add painting number routes for default locale
+    ...defaultRooms.flatMap((room: Room) => [
+      ...room.paintings.map((painting: Painting) => ({
         slug: [`painting-${painting.paintingNumber}`]
+      })),
+      ...room.paintings.map((painting: Painting) => ({
+        slug: [painting.paintingNumber]
       }))
-    )
+    ])
   ]
 
   return [...allParams, ...defaultParams]
@@ -59,7 +73,13 @@ export default async function Page({
   params: Promise<{ slug: string[] }>
 }) {
   const { slug = [] } = await params
-  
+  // Add check for offline route
+  if (slug[slug.length - 1] === 'offline') {
+    return (
+      <OfflinePage />
+    )
+  }
+
   // Clean up the slug array by removing any extra locales
   const cleanSlug = (() => {
     const localeIndexes = slug
