@@ -6,9 +6,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { clsx } from 'clsx'
 import { Button } from "@/components/ui/button"
 import { LucideIcon } from 'lucide-react'
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 
 interface SharedDrawerProps {
     title: string
+    pageTitle?: string
     icon: LucideIcon
     children: React.ReactNode
     isOpen?: boolean
@@ -18,7 +20,7 @@ interface SharedDrawerProps {
 
 const snapPoints = ['340px', 1]
 
-export function SharedDrawer({ title, icon: Icon, children, isOpen, onOpenChange, description }: SharedDrawerProps) {
+export function SharedDrawer({ title, pageTitle = title, icon: Icon, children, isOpen, onOpenChange, description }: SharedDrawerProps) {
     const descriptionId = useId()
     const [snap, setSnap] = useState<number | string | null>(snapPoints[0])
     const [isMobile, setIsMobile] = useState(false)
@@ -40,8 +42,9 @@ export function SharedDrawer({ title, icon: Icon, children, isOpen, onOpenChange
                     <Button
                         className="rounded-full h-8 flex items-center justify-center"
                         size={title ? "default" : "icon"}
+                        aria-label={title}
                     >
-                        <Icon className="h-6 w-6" />
+                        <Icon className="h-6 w-6" aria-hidden="true" />
                         {title && <span>{title}</span>}
                     </Button>
                 </DialogTrigger>
@@ -50,9 +53,15 @@ export function SharedDrawer({ title, icon: Icon, children, isOpen, onOpenChange
                     aria-describedby={description ? descriptionId : undefined}
                 >
                     <DialogHeader className="flex-none m-0">
-                        <DialogTitle className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl m-0">
-                            {title}
-                        </DialogTitle>
+                        {pageTitle ? (
+                            <DialogTitle className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl m-0">
+                                {pageTitle}
+                            </DialogTitle>
+                        ) : (
+                            <VisuallyHidden asChild>
+                                <DialogTitle>{title}</DialogTitle>
+                            </VisuallyHidden>
+                        )}
                     </DialogHeader>
                     {description && (
                         <div id={descriptionId} className="sr-only">
@@ -80,8 +89,9 @@ export function SharedDrawer({ title, icon: Icon, children, isOpen, onOpenChange
                 <Button
                     className="rounded-full h-8 flex items-center justify-center"
                     size={title ? "default" : "icon"}
+                    aria-label={title}
                 >
-                    <Icon className="h-6 w-6" />
+                    <Icon className="h-6 w-6" aria-hidden="true" />
                     {title && <span>{title}</span>}
                 </Button>
             </Drawer.Trigger>
@@ -94,9 +104,14 @@ export function SharedDrawer({ title, icon: Icon, children, isOpen, onOpenChange
                     <div className="flex flex-col max-w-md mx-auto w-full h-full">
                         <div className="px-4 pt-5 pb-2 bg-white dark:bg-zinc-950 shadow rounded-t-3xl">
                             <Drawer.Title className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl mb-4">
-                                {title}
+                                {pageTitle}
                             </Drawer.Title>
                         </div>
+                        {description && (
+                            <div id={descriptionId} className="sr-only">
+                                {description}
+                            </div>
+                        )}
                         <div className={clsx('flex-1', {
                             'overflow-y-auto': snap === 1,
                             'overflow-hidden': snap !== 1,

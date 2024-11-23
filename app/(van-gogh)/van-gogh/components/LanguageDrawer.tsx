@@ -1,20 +1,39 @@
 'use client'
 
 import { useState } from 'react'
-import { Flag } from 'lucide-react'
+import { Flag, Download } from 'lucide-react'
 import { SharedDrawer } from './SharedDrawer'
 import { Button } from "@/components/ui/button"
 import { SUPPORTED_LOCALES, Locale, getTranslation } from '../libs/localization'
 import { useRouter } from 'next/navigation'
+import { cn } from '@/lib/utils'
 
 interface LanguageDrawerProps {
     currentLocale: Locale
 }
 
+interface ServiceWorkerResponse {
+    success: boolean;
+    message: string;
+    error?: string;
+    summary?: {
+        total: number;
+        succeeded: number;
+        failed: number;
+        details: Array<{
+            url: string;
+            status: 'cached' | 'failed';
+            error?: string;
+        }>;
+    };
+}
+
 export function LanguageDrawer({ currentLocale }: LanguageDrawerProps) {
     const router = useRouter()
-    const [randomNumber, setRandomNumber] = useState<number | null>(null)
-    const [error, setError] = useState<string | null>(null)
+    const [status, setStatus] = useState<{
+        message: string;
+        type: 'success' | 'error' | 'info';
+    } | null>(null)
 
     const isServiceWorkerSupported = () => {
         if (typeof window === 'undefined') return false;
@@ -29,73 +48,134 @@ export function LanguageDrawer({ currentLocale }: LanguageDrawerProps) {
         router.push(newPath)
     }
 
-    const handleGetRandomNumber = async () => {
-        setError(null) // Reset error state
+    const handlePurgeCache = async () => {
+        setStatus({ message: 'Purging cache...', type: 'info' });
         
         if (!isServiceWorkerSupported()) {
-            console.log('Service Worker not supported');
-            setError('Service Worker not supported');
+            setStatus({ message: 'Service Worker not supported', type: 'error' });
             return;
         }
 
         if (!navigator.serviceWorker.controller) {
-            console.log('Service Worker not controlling the page');
-            setError('Service Worker not ready. Please refresh the page.');
+            setStatus({ message: 'Service Worker not ready. Please refresh the page.', type: 'error' });
             return;
         }
 
         try {
-            // Create a message channel
+            const registration = await navigator.serviceWorker.ready;
             const messageChannel = new MessageChannel();
             
-            // Create a promise that will reject if we don't get a response within 3 seconds
-            const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('Service Worker response timeout')), 3000);
-            });
-
-            const messagePromise = new Promise((resolve) => {
+            const response = await new Promise<ServiceWorkerResponse>((resolve, reject) => {
+                const timeout = setTimeout(() => reject(new Error('Service Worker response timeout')), 10000);
+                
                 messageChannel.port1.onmessage = (event) => {
-                    console.log('Received response:', event.data);
+                    clearTimeout(timeout);
                     resolve(event.data);
                 };
+                
+                registration.active?.postMessage(
+                    { type: 'PURGE_CACHE' },
+                    [messageChannel.port2]
+                );
             });
 
-            console.log('Sending message to Service Worker...');
-            navigator.serviceWorker.controller.postMessage(
-                { type: 'GET_RANDOM_NUMBER' },
-                [messageChannel.port2]
-            );
-
-            // Wait for either the response or timeout
-            const response = await Promise.race([messagePromise, timeoutPromise]);
-            if (response && typeof response === 'object' && 'randomNumber' in response) {
-                setRandomNumber(response.randomNumber as number);
-            } else {
-                setError('Unexpected response format from Service Worker');
-            }
-            
+            setStatus({ 
+                message: response.message, 
+                type: response.success ? 'success' : 'error' 
+            });
         } catch (err) {
-            console.error('Error communicating with Service Worker:', err);
-            setError(err instanceof Error ? err.message : 'Failed to get random number');
+            setStatus({ 
+                message: err instanceof Error ? err.message : 'Failed to purge cache', 
+                type: 'error' 
+            });
+        }
+    }
+
+    const handleCacheAssets = async (locale: Locale) => {
+        setStatus({ message: `Starting cache process for ${locale}...`, type: 'info' });
+        
+        if (!isServiceWorkerSupported()) {
+            setStatus({ message: 'Service Worker not supported', type: 'error' });
+            return;
+        }
+
+        if (!navigator.serviceWorker.controller) {
+            setStatus({ message: 'Service Worker not ready. Please refresh the page.', type: 'error' });
+            return;
+        }
+
+        try {
+            const registration = await navigator.serviceWorker.ready;
+            const messageChannel = new MessageChannel();
+            
+            const response = await new Promise<ServiceWorkerResponse>((resolve, reject) => {
+                const timeout = setTimeout(() => 
+                    reject(new Error('Cache operation timed out. The process might still be running in the background.')), 
+                    60000
+                );
+                
+                messageChannel.port1.onmessage = (event) => {
+                    clearTimeout(timeout);
+                    if (event.data.type === 'progress') {
+                        setStatus({ 
+                            message: `Caching ${locale}: ${event.data.message}`, 
+                            type: 'info' 
+                        });
+                    } else {
+                        resolve(event.data);
+                    }
+                };
+                
+                registration.active?.postMessage(
+                    { type: 'CACHE_ASSETS', locale },
+                    [messageChannel.port2]
+                );
+            });
+
+            if (response.summary) {
+                setStatus({ 
+                    message: `${response.message} (${response.summary.succeeded}/${response.summary.total} files cached)`, 
+                    type: response.success ? 'success' : 'error' 
+                });
+            } else {
+                setStatus({ 
+                    message: response.message, 
+                    type: response.success ? 'success' : 'error' 
+                });
+            }
+        } catch (err) {
+            setStatus({ 
+                message: err instanceof Error ? err.message : 'Failed to cache assets', 
+                type: 'error' 
+            });
         }
     }
 
     return (
         <SharedDrawer
             title={""}
+            pageTitle={getTranslation(currentLocale, "changeLanguage")}
             icon={Flag}
             description={getTranslation(currentLocale, "selectLanguage")}
         >
             <div className="p-4 space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                     {SUPPORTED_LOCALES.map((locale) => (
-                        <div key={locale}>
+                        <div key={locale} className="flex items-center gap-2">
                             <Button
                                 variant={locale === currentLocale ? "secondary" : "outline"}
-                                className="w-full"
+                                className="flex-1 rounded-full rounded-r-none mr-0"
                                 onClick={() => handleLanguageChange(locale)}
                             >
                                 {getTranslation(locale, "languageName")}
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-10 w-10 rounded-full rounded-l-none ml-0"
+                                onClick={() => handleCacheAssets(locale)}
+                            >
+                                <Download className="h-4 w-4" />
                             </Button>
                         </div>
                     ))}
@@ -103,22 +183,22 @@ export function LanguageDrawer({ currentLocale }: LanguageDrawerProps) {
 
                 <div className="space-y-2">
                     <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={handleGetRandomNumber}
+                        variant="destructive"
+                        size="sm"
+                        className="w-full rounded-full"
+                        onClick={handlePurgeCache}
                     >
-                        {getTranslation(currentLocale, "getRandomNumber")}
+                        {getTranslation(currentLocale, "purgeCache")}
                     </Button>
-                    
-                    {randomNumber !== null && (
-                        <p className="text-center text-sm">
-                            {getTranslation(currentLocale, "randomNumber")}: {randomNumber}
-                        </p>
-                    )}
 
-                    {error && (
-                        <p className="text-center text-sm text-red-500">
-                            {error}
+                    {status && (
+                        <p className={cn(
+                            "text-center text-sm",
+                            status.type === 'error' && "text-red-500",
+                            status.type === 'success' && "text-green-500",
+                            status.type === 'info' && "text-blue-500"
+                        )}>
+                            {status.message}
                         </p>
                     )}
 

@@ -534,6 +534,11 @@ export const translations: TranslationInterface = {
         "zh-TW": "語言",
         "zh-CN": "语言"
     },
+    "changeLanguage": {
+        "en-GB": "Change Language",
+        "zh-TW": "更改語言",
+        "zh-CN": "更改语言"
+    },
     "exhibitionPlan": {
         "en-GB": "Map",
         "zh-TW": "地圖",
@@ -683,6 +688,16 @@ export const translations: TranslationInterface = {
         "en-GB": "Random Number",
         "zh-TW": "隨機數字",
         "zh-CN": "随机数字"
+    },
+    "cacheLanguage": {
+        "en-GB": "Cache",
+        "zh-TW": "快取",
+        "zh-CN": "缓存"
+    },
+    "purgeCache": {
+        "en-GB": "Purge All Caches",
+        "zh-TW": "清除所有快取",
+        "zh-CN": "清除所有缓存"
     }
     // Add more translations here
 };

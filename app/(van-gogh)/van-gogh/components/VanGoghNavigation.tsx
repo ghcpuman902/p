@@ -346,53 +346,53 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                 audioRef.current.currentTime = 0
             }
 
-            // Use the same URL parsing logic as before
-            const pathParts = url.split('van-gogh/')[1]?.split('/') || []
-            const cleanPathParts = (() => {
-                const localeIndexes = pathParts
-                    .map((part, index) => SUPPORTED_LOCALES.includes(part as Locale) ? index : -1)
-                    .filter(index => index !== -1)
+            // // Use the same URL parsing logic as before
+            // const pathParts = url.split('van-gogh/')[1]?.split('/') || []
+            // const cleanPathParts = (() => {
+            //     const localeIndexes = pathParts
+            //         .map((part, index) => SUPPORTED_LOCALES.includes(part as Locale) ? index : -1)
+            //         .filter(index => index !== -1)
 
-                // If multiple locales found, use everything after the last locale
-                if (localeIndexes.length > 1) {
-                    return pathParts.slice(localeIndexes[localeIndexes.length - 1])
-                }
-                return pathParts
-            })()
+            //     // If multiple locales found, use everything after the last locale
+            //     if (localeIndexes.length > 1) {
+            //         return pathParts.slice(localeIndexes[localeIndexes.length - 1])
+            //     }
+            //     return pathParts
+            // })()
 
-            let [newLocale, newRoomId, newPaintingId] = cleanPathParts as [Locale, string, string]
+            // let [newLocale, newRoomId, newPaintingId] = cleanPathParts as [Locale, string, string]
 
-            // Handle cases where locale is not in the URL
-            if (!SUPPORTED_LOCALES.includes(newLocale as Locale)) {
-                newPaintingId = newRoomId
-                newRoomId = newLocale
-                newLocale = locale // Use the current locale from props
-            }
+            // // Handle cases where locale is not in the URL
+            // if (!SUPPORTED_LOCALES.includes(newLocale as Locale)) {
+            //     newPaintingId = newRoomId
+            //     newRoomId = newLocale
+            //     newLocale = locale // Use the current locale from props
+            // }
 
-            // Handle painting numbers in room IDs
-            if (newRoomId?.startsWith('painting-')) {
-                const paintingNumber = newRoomId.split('-')[1]
-                const painting = rooms.flatMap((room: Room) => room.paintings)
-                    .find((painting: Painting) => painting.paintingNumber === paintingNumber)
+            // // Handle painting numbers in room IDs
+            // if (newRoomId?.startsWith('painting-')) {
+            //     const paintingNumber = newRoomId.split('-')[1]
+            //     const painting = rooms.flatMap((room: Room) => room.paintings)
+            //         .find((painting: Painting) => painting.paintingNumber === paintingNumber)
 
-                if (painting) {
-                    newRoomId = `room-${painting.roomNumber}`
-                    newPaintingId = painting.id
-                }
-            }
+            //     if (painting) {
+            //         newRoomId = `room-${painting.roomNumber}`
+            //         newPaintingId = painting.id
+            //     }
+            // }
 
-            console.table({newPaintingId, newRoomId})
-            // Construct audio path only if we have valid IDs
-            if (isValidAudioPath(newPaintingId, newRoomId)) {
-                const newAudioPath = newPaintingId
-                    ? `/van-gogh-assets/${newLocale}.${newPaintingId}.aac`
-                    : `/van-gogh-assets/${newLocale}.${newRoomId}.aac`
+            // console.table({newPaintingId, newRoomId})
+            // // Construct audio path only if we have valid IDs
+            // if (isValidAudioPath(newPaintingId, newRoomId)) {
+            //     const newAudioPath = newPaintingId
+            //         ? `/van-gogh-assets/${newLocale}.${newPaintingId}.aac`
+            //         : `/van-gogh-assets/${newLocale}.${newRoomId}.aac`
                 
-                setAudioSrc(newAudioPath)
-                console.log("New audio path:", newAudioPath)
-            }else{
-                console.warn("Invalid audio path parameters detected:", newPaintingId, newRoomId)
-            }
+            //     setAudioSrc(newAudioPath)
+            //     console.log("New audio path:", newAudioPath)
+            // }else{
+            //     console.warn("Invalid audio path parameters detected:", newPaintingId, newRoomId)
+            // }
 
             router.push(url)
         }
