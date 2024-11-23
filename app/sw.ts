@@ -16,14 +16,6 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope;
 
-/* The `const PRECACHE_ASSETS` array is defining a list of assets that should be precached in the
-service worker. Precaching refers to storing these assets in the cache when the service worker is
-installed, so they can be accessed quickly later on, even when the user is offline. */
-// const PRECACHE_ASSETS = [
-//   '/van-gogh/~offline',
-//   '/van-gogh-assets/fallback-image.jpg',
-//   '/van-gogh-assets/silence.aac'
-// ];
 
 // Add message handler
 addEventListener('message', (event) => {
@@ -115,7 +107,7 @@ const serwist = new Serwist({
   fallbacks: {
     entries: [
       {
-        url: "/~offline",
+        url: "/offline",
         matcher({ request }) {
           return request.destination === "document";
         },

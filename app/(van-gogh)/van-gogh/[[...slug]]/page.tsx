@@ -6,6 +6,8 @@ import { Locale, SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/app/(van-gogh)/van-
 import OfflinePage from './Offline'
 // import { InstallPrompt } from '../components/InstallPrompt'
 
+const paintingIdNeeded = [13,18,19,35,3,43,48,47,58,59,23,53].sort((a, b) => a - b).map(num => `painting-${num}`)
+
 export async function generateStaticParams(): Promise<{ slug: string[] }[]> {
   const allParams = []
 
@@ -24,18 +26,17 @@ export async function generateStaticParams(): Promise<{ slug: string[] }[]> {
         // Individual room pages (e.g. /en-GB/room-1) 
         {
           slug: [locale, room.id]
-        },
-        // Direct painting number access (e.g. /en-GB/painting-1)
-        ...room.paintings.map(painting => ({
-          slug: [locale, `painting-${painting.paintingNumber}`]
-        }))
-      ])
+        }
+      ]),
+      // Direct painting number access (e.g. /en-GB/painting-1)
+      ...paintingIdNeeded.map(paintingId => ({
+        slug: [locale, paintingId]
+      }))
     ]
     allParams.push(...localeParams)
 
-    // Add paths without locale prefix for all locales
+    // Add paths without locale prefix
     const noLocaleParams = [
-      // Room-painting combinations (e.g. /room-1/painting-1-1)
       ...rooms.flatMap((room: Room) => [
         ...room.paintings.map(painting => ({
           slug: [room.id, painting.id]
@@ -43,12 +44,12 @@ export async function generateStaticParams(): Promise<{ slug: string[] }[]> {
         // Individual room pages (e.g. /room-1)
         {
           slug: [room.id]
-        },
-        // Direct painting number access (e.g. /painting-1)
-        ...room.paintings.map(painting => ({
-          slug: [`painting-${painting.paintingNumber}`]
-        }))
-      ])
+        }
+      ]),
+      // Direct painting number access without locale (e.g. /painting-1)
+      ...paintingIdNeeded.map(paintingId => ({
+        slug: [paintingId]
+      }))
     ]
     allParams.push(...noLocaleParams)
   }

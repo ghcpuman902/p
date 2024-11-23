@@ -19,6 +19,9 @@ interface VanGoghNavigationProps {
     children: React.ReactNode
 }
 
+// Add this constant near the top of the file
+const DEFAULT_PLAYBACK_SPEED = 2
+
 export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationProps) {
     const pathname = usePathname()
     const segments = useSelectedLayoutSegments()
@@ -268,14 +271,27 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
             // Wait for next tick to ensure audio element has updated
             await new Promise(resolve => setTimeout(resolve, 0));
 
-            if (wasPlayingRef.current && audioRef.current) {
-                try {
-                    await audioRef.current.play();
-                    setIsPlaying(true);
-                } catch (error) {
-                    console.error('Error playing audio:', error);
-                    setIsPlaying(false);
-                    wasPlayingRef.current = false;
+            if (audioRef.current) {
+                // Set playback speed immediately
+                audioRef.current.playbackRate = DEFAULT_PLAYBACK_SPEED;
+                
+                // Also set playback speed when audio loads
+                audioRef.current.addEventListener('loadeddata', () => {
+                    if (audioRef.current) {
+                        audioRef.current.playbackRate = DEFAULT_PLAYBACK_SPEED;
+                        console.log('Playback speed set to:', audioRef.current.playbackRate); // Debug log
+                    }
+                }, { once: true });
+
+                if (wasPlayingRef.current) {
+                    try {
+                        await audioRef.current.play();
+                        setIsPlaying(true);
+                    } catch (error) {
+                        console.error('Error playing audio:', error);
+                        setIsPlaying(false);
+                        wasPlayingRef.current = false;
+                    }
                 }
             }
         } catch (error) {
@@ -285,6 +301,14 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
             wasPlayingRef.current = false;
         }
     }, [currentLocale, currentPaintingId, currentRoomId, isValidAudioPath]);
+
+    // Add a new effect to ensure playback speed is maintained
+    useEffect(() => {
+        if (audioRef.current) {
+            audioRef.current.playbackRate = DEFAULT_PLAYBACK_SPEED;
+            console.log('Playback speed set in effect:', audioRef.current.playbackRate); // Debug log
+        }
+    }, [audioSrc]);
 
     // Modify playAudio function
     const playAudio = useCallback(async () => {
@@ -492,8 +516,8 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                     </div>
                 </div>
                 <div className="flex gap-2 bg-transparent justify-end p-2">
-                    <ChronologyDrawer lang={currentLocale} />
-                    <ExhibitionMapDrawer lang={currentLocale} />
+                    <ChronologyDrawer currentLocale={currentLocale} />
+                    <ExhibitionMapDrawer currentLocale={currentLocale} />
                     <LanguageDrawer currentLocale={currentLocale}/>
                 </div>
             </nav>

@@ -6,7 +6,7 @@ import { SharedDrawer } from './SharedDrawer'
 import { chronologyData } from '../libs/translations'
 import { type Locale, getTranslation } from '../libs/localization'
 
-export function ChronologyDrawer({ lang }: { lang: Locale }) {
+export function ChronologyDrawer({ currentLocale }: { currentLocale: Locale }) {
     const [activeSection, setActiveSection] = useState('')
 
     useEffect(() => {
@@ -43,19 +43,19 @@ export function ChronologyDrawer({ lang }: { lang: Locale }) {
 
     return (
         <SharedDrawer
-            title={getTranslation(lang, 'chronologyTitle')}
+            title={getTranslation(currentLocale, 'chronologyTitle')}
             icon={Clock}
         >
             <div className="flex flex-col md:flex-row justify-between mx-auto h-full overflow-y-auto p-4 pt-4">
                 <main className="w-full md:pr-4">
-                    {chronologyData[lang].map((year, yearIdx) => (
+                    {chronologyData[currentLocale].map((year, yearIdx) => (
                         <section key={year.id} className="mb-8">
                             <h2 id={year.id} className="scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0">
                                 {year.title} <div className="text-muted-foreground text-sm">
                                     ({yearIdx !== 0 
-                                        ? (year.title).split('-').map((yearText)=>(`${parseInt(yearText)-parseInt(chronologyData[lang][0].title)}`)).join('-') 
+                                        ? (year.title).split('-').map((yearText)=>(`${parseInt(yearText)-parseInt(chronologyData[currentLocale][0].title)}`)).join('-') 
                                         : `0-${1868-1853}`}
-                                    {getTranslation(lang, 'yearsOld')})
+                                    {getTranslation(currentLocale, 'yearsOld')})
                                 </div>
                             </h2>
                             {Array.isArray(year.content) ? (
@@ -73,13 +73,13 @@ export function ChronologyDrawer({ lang }: { lang: Locale }) {
                         </section>
                     ))}
                     <p className="mt-8 mb-8 text-sm text-gray-600">
-                        {getTranslation(lang, 'chronologyFooter')}
+                        {getTranslation(currentLocale, 'chronologyFooter')}
                     </p>
                 </main>
                 <nav className="hidden md:block w-1/3 md:sticky md:top-0 self-start">
                     <h2 className="scroll-m-20 text-2xl font-semibold mb-4 sr-only">Table of Contents</h2>
                     <ul className="space-y-2">
-                        {chronologyData[lang].map((year) => (
+                        {chronologyData[currentLocale].map((year) => (
                             <li key={year.id}>
                                 <a
                                     href={`#${year.id}`}

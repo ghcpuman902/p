@@ -3,10 +3,10 @@ import { cn } from '@/lib/utils'
 import { type Locale, getTranslation } from '@/app/(van-gogh)/van-gogh/libs/localization'
 
 interface SVGMapProps {
-  lang: Locale
+  currentLocale: Locale
 }
 
-export function ExhibitionPlan({ lang }: SVGMapProps) {
+export function ExhibitionPlan({ currentLocale }: SVGMapProps) {
   const rooms = Array.from({ length: 6 }, (_, i) => i + 1)
 
   return (
@@ -54,9 +54,9 @@ export function ExhibitionPlan({ lang }: SVGMapProps) {
 
           {/* Labels and Arrows */}
           <g className="map-text map-label">
-            <text x="73.5" y="46.5" textAnchor="middle">{getTranslation(lang, 'exit')}</text>
-            <text x="114" y="111.95" textAnchor="middle">{getTranslation(lang, 'shop')}</text>
-            <text x="478.5" y="136.5" textAnchor="middle">{getTranslation(lang, 'entrance')}</text>
+            <text x="73.5" y="46.5" textAnchor="middle">{getTranslation(currentLocale, 'exit')}</text>
+            <text x="114" y="111.95" textAnchor="middle">{getTranslation(currentLocale, 'shop')}</text>
+            <text x="478.5" y="136.5" textAnchor="middle">{getTranslation(currentLocale, 'entrance')}</text>
           </g>
 
           {/* Arrows */}
@@ -72,13 +72,13 @@ export function ExhibitionPlan({ lang }: SVGMapProps) {
         {rooms.map((number) => (
           <div key={number} className="grid grid-cols-[4em,1fr] gap-4 text-lg">
             <div className="text-secondary">
-              {getTranslation(lang, 'room')} {number}
+              {getTranslation(currentLocale, 'room')} {number}
             </div>
             <div className={cn(
               "text-foreground",
-              lang !== 'en-GB' && "whitespace-pre-line"
+              currentLocale !== 'en-GB' && "whitespace-pre-line"
             )}>
-              {getTranslation(lang, `exhibitionRoom${number}`)}
+              {getTranslation(currentLocale, `exhibitionRoom${number}`)}
             </div>
           </div>
         ))}

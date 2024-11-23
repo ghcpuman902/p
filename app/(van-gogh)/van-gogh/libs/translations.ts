@@ -596,8 +596,8 @@ export const translations: TranslationInterface = {
     },
     "exhibitionRoom4": {
         "en-GB": "Montmajour: A Series",
-        "zh-TW": "蒙馬茹：系列",
-        "zh-CN": "蒙马茹：系列"
+        "zh-TW": "蒙馬喬山：一個系列",
+        "zh-CN": "蒙马若：一个系列"
     },
     "exhibitionRoom5": {
         "en-GB": "Decoration",

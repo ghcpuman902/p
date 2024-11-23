@@ -27,7 +27,7 @@ export function SharedDrawer({ title, icon: Icon, children, isOpen, onOpenChange
         const checkMobile = () => {
             setIsMobile(window.innerWidth < 448) // 28rem = 448px (28 * 16px)
         }
-        
+
         checkMobile()
         window.addEventListener('resize', checkMobile)
         return () => window.removeEventListener('resize', checkMobile)
@@ -37,12 +37,15 @@ export function SharedDrawer({ title, icon: Icon, children, isOpen, onOpenChange
         return (
             <Dialog open={isOpen} onOpenChange={onOpenChange}>
                 <DialogTrigger asChild>
-                    <Button className="rounded-full h-10 flex items-center justify-center">
+                    <Button
+                        className="rounded-full h-8 flex items-center justify-center"
+                        size={title ? "default" : "icon"}
+                    >
                         <Icon className="h-6 w-6" />
-                        <span>{title}</span>
+                        {title && <span>{title}</span>}
                     </Button>
                 </DialogTrigger>
-                <DialogContent 
+                <DialogContent
                     className="sm:max-w-4xl h-[80vh] flex flex-col [--radius:1.5rem]"
                     aria-describedby={description ? descriptionId : undefined}
                 >
@@ -65,23 +68,26 @@ export function SharedDrawer({ title, icon: Icon, children, isOpen, onOpenChange
     }
 
     return (
-        <Drawer.Root 
-            snapPoints={snapPoints} 
-            activeSnapPoint={snap} 
+        <Drawer.Root
+            snapPoints={snapPoints}
+            activeSnapPoint={snap}
             setActiveSnapPoint={setSnap}
             modal={true}
             open={isOpen}
             onOpenChange={onOpenChange}
         >
             <Drawer.Trigger asChild>
-                <Button className="rounded-full h-10 flex items-center justify-center">
+                <Button
+                    className="rounded-full h-8 flex items-center justify-center"
+                    size={title ? "default" : "icon"}
+                >
                     <Icon className="h-6 w-6" />
-                    <span>{title}</span>
+                    {title && <span>{title}</span>}
                 </Button>
             </Drawer.Trigger>
-            <Drawer.Overlay className="fixed inset-0 bg-black/40" />
+            <Drawer.Overlay className="fixed inset-0 bg-black/40 z-40" />
             <Drawer.Portal>
-                <Drawer.Content 
+                <Drawer.Content
                     className="fixed flex flex-col bg-white dark:bg-zinc-950 border border-gray-400 dark:border-zinc-600 border-b-none rounded-t-3xl bottom-0 left-0 right-0 h-full max-h-[97%] mx-[-1px] drawer-content z-50"
                     aria-describedby={description ? descriptionId : undefined}
                 >

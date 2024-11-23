@@ -82,7 +82,7 @@ export function LanguageDrawer({ currentLocale }: LanguageDrawerProps) {
 
     return (
         <SharedDrawer
-            title={getTranslation(currentLocale, "language")}
+            title={""}
             icon={Flag}
             description={getTranslation(currentLocale, "selectLanguage")}
         >
