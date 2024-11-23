@@ -20,7 +20,7 @@ interface VanGoghNavigationProps {
 }
 
 // Add this constant near the top of the file
-const DEFAULT_PLAYBACK_SPEED = 2
+const DEFAULT_PLAYBACK_SPEED = 1.1
 
 export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationProps) {
     const pathname = usePathname()
@@ -335,7 +335,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
     }, [isOffline, audioSrc]);
 
     // Handle navigation while preserving audio state
-    const handleNavigation = (url: string | null) => {
+    const handleNavigation = async (url: string | null) => {
         if (url) {
             // Store playing state in ref so it persists across route change
             wasPlayingRef.current = isPlaying
@@ -344,6 +344,54 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
             if (audioRef.current) {
                 audioRef.current.pause()
                 audioRef.current.currentTime = 0
+            }
+
+            // Use the same URL parsing logic as before
+            const pathParts = url.split('van-gogh/')[1]?.split('/') || []
+            const cleanPathParts = (() => {
+                const localeIndexes = pathParts
+                    .map((part, index) => SUPPORTED_LOCALES.includes(part as Locale) ? index : -1)
+                    .filter(index => index !== -1)
+
+                // If multiple locales found, use everything after the last locale
+                if (localeIndexes.length > 1) {
+                    return pathParts.slice(localeIndexes[localeIndexes.length - 1])
+                }
+                return pathParts
+            })()
+
+            let [newLocale, newRoomId, newPaintingId] = cleanPathParts as [Locale, string, string]
+
+            // Handle cases where locale is not in the URL
+            if (!SUPPORTED_LOCALES.includes(newLocale as Locale)) {
+                newPaintingId = newRoomId
+                newRoomId = newLocale
+                newLocale = locale // Use the current locale from props
+            }
+
+            // Handle painting numbers in room IDs
+            if (newRoomId?.startsWith('painting-')) {
+                const paintingNumber = newRoomId.split('-')[1]
+                const painting = rooms.flatMap((room: Room) => room.paintings)
+                    .find((painting: Painting) => painting.paintingNumber === paintingNumber)
+
+                if (painting) {
+                    newRoomId = `room-${painting.roomNumber}`
+                    newPaintingId = painting.id
+                }
+            }
+
+            console.table({newPaintingId, newRoomId})
+            // Construct audio path only if we have valid IDs
+            if (isValidAudioPath(newPaintingId, newRoomId)) {
+                const newAudioPath = newPaintingId
+                    ? `/van-gogh-assets/${newLocale}.${newPaintingId}.aac`
+                    : `/van-gogh-assets/${newLocale}.${newRoomId}.aac`
+                
+                setAudioSrc(newAudioPath)
+                console.log("New audio path:", newAudioPath)
+            }else{
+                console.warn("Invalid audio path parameters detected:", newPaintingId, newRoomId)
             }
 
             router.push(url)
@@ -508,7 +556,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                                 roomIndex < rooms.length - 1 && rooms[roomIndex + 1].paintings.length ? (
                                     <div
                                         key={`separator-${room.roomTitle}`}
-                                        className="h-6 w-[10px] bg-neutral-400 mr-1 rounded-full separator "
+                                        className="h-12 w-[4px] bg-neutral-300 dark:bg-neutral-800 mr-1 rounded-full separator "
                                     >&nbsp;</div>
                                 ) : null,
                             ])}
@@ -592,9 +640,11 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                     ref={audioRef}
                     src={audioSrc}
                     onError={(e) => {
-                        console.warn("Audio Error:", e)
-                        setIsPlaying(false)
-                        wasPlayingRef.current = false
+                        const error = e.currentTarget as HTMLAudioElement;
+                        console.warn(`Audio Error: ${error.error?.message || 'Unknown error'}`);
+                        console.warn(`Audio source that failed: ${error.currentSrc}`);
+                        setIsPlaying(false);
+                        wasPlayingRef.current = false;
                     }}
                     onTimeUpdate={() => {
                         if (audioRef.current) {
