@@ -6,65 +6,54 @@ import { Locale, SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/app/(van-gogh)/van-
 import OfflinePage from './Offline'
 // import { InstallPrompt } from '../components/InstallPrompt'
 
-
 export async function generateStaticParams(): Promise<{ slug: string[] }[]> {
   const allParams = []
 
-  // Add offline route for each locale
+  // Add offline route
   allParams.push({ slug: ['offline'] })
-  for (const locale of SUPPORTED_LOCALES) {
-    allParams.push({ slug: [locale, 'offline'] })
-  }
 
   for (const locale of SUPPORTED_LOCALES) {
     const rooms = await getRooms(locale as Locale)
     const localeParams = [
-      // Room-painting combinations
-      ...rooms.flatMap((room: Room) =>
-        room.paintings.map((painting: Painting) => ({
-          slug: [locale, room.id, painting.id]
-        }))
-      ),
-      // Room IDs
-      ...rooms.map((room: Room) => ({
-        slug: [locale, room.id]
-      })),
-      // Painting numbers (both with and without locale)
+      // Generate all possible URL patterns for the current locale
       ...rooms.flatMap((room: Room) => [
-        ...room.paintings.map((painting: Painting) => ({
-          slug: [locale, `painting-${painting.paintingNumber}`]
+        // Room-painting combinations (e.g. /en-GB/room-1/painting-1-1)
+        ...room.paintings.map(painting => ({
+          slug: [locale, room.id, painting.id]
         })),
-        ...room.paintings.map((painting: Painting) => ({
-          slug: [locale, painting.paintingNumber]
+        // Individual room pages (e.g. /en-GB/room-1) 
+        {
+          slug: [locale, room.id]
+        },
+        // Direct painting number access (e.g. /en-GB/painting-1)
+        ...room.paintings.map(painting => ({
+          slug: [locale, `painting-${painting.paintingNumber}`]
         }))
       ])
     ]
     allParams.push(...localeParams)
+
+    // Add paths without locale prefix for all locales
+    const noLocaleParams = [
+      // Room-painting combinations (e.g. /room-1/painting-1-1)
+      ...rooms.flatMap((room: Room) => [
+        ...room.paintings.map(painting => ({
+          slug: [room.id, painting.id]
+        })),
+        // Individual room pages (e.g. /room-1)
+        {
+          slug: [room.id]
+        },
+        // Direct painting number access (e.g. /painting-1)
+        ...room.paintings.map(painting => ({
+          slug: [`painting-${painting.paintingNumber}`]
+        }))
+      ])
+    ]
+    allParams.push(...noLocaleParams)
   }
 
-  // Add default language routes
-  const defaultRooms = await getRooms(DEFAULT_LOCALE)
-  const defaultParams = [
-    ...defaultRooms.flatMap((room: Room) =>
-      room.paintings.map((painting: Painting) => ({
-        slug: [room.id, painting.id]
-      }))
-    ),
-    ...defaultRooms.map((room: Room) => ({
-      slug: [room.id]
-    })),
-    // Add painting number routes for default locale
-    ...defaultRooms.flatMap((room: Room) => [
-      ...room.paintings.map((painting: Painting) => ({
-        slug: [`painting-${painting.paintingNumber}`]
-      })),
-      ...room.paintings.map((painting: Painting) => ({
-        slug: [painting.paintingNumber]
-      }))
-    ])
-  ]
-
-  return [...allParams, ...defaultParams]
+  return allParams
 }
 
 export default async function Page({ 
