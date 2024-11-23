@@ -186,23 +186,26 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
         return null;
     }
 
-    // Modify the isOffline state initialization
-    const [isOffline, setIsOffline] = useState(false);
+    // Modify the isOffline state initialization and effect
+    const [isOffline, setIsOffline] = useState(true); // Default to offline until we confirm online status
 
     useEffect(() => {
-        // Set initial online status only after component mounts
-        setIsOffline(!window.navigator.onLine);
+        // Check if we're in a browser environment
+        if (typeof window !== 'undefined' && 'navigator' in window) {
+            // Set initial online status
+            setIsOffline(!window.navigator.onLine);
 
-        const handleOnline = () => setIsOffline(false);
-        const handleOffline = () => setIsOffline(true);
+            const handleOnline = () => setIsOffline(false);
+            const handleOffline = () => setIsOffline(true);
 
-        window.addEventListener('online', handleOnline);
-        window.addEventListener('offline', handleOffline);
+            window.addEventListener('online', handleOnline);
+            window.addEventListener('offline', handleOffline);
 
-        return () => {
-            window.removeEventListener('online', handleOnline);
-            window.removeEventListener('offline', handleOffline);
-        };
+            return () => {
+                window.removeEventListener('online', handleOnline);
+                window.removeEventListener('offline', handleOffline);
+            };
+        }
     }, []);
 
     // Add this new function near the top of the component

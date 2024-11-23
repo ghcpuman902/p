@@ -16,6 +16,11 @@ export function LanguageDrawer({ currentLocale }: LanguageDrawerProps) {
     const [randomNumber, setRandomNumber] = useState<number | null>(null)
     const [error, setError] = useState<string | null>(null)
 
+    const isServiceWorkerSupported = () => {
+        if (typeof window === 'undefined') return false;
+        return 'serviceWorker' in navigator;
+    }
+
     const handleLanguageChange = (locale: Locale) => {
         const newPath = window.location.pathname.replace(
             /\/van-gogh\/[^/]+/,
@@ -27,7 +32,7 @@ export function LanguageDrawer({ currentLocale }: LanguageDrawerProps) {
     const handleGetRandomNumber = async () => {
         setError(null) // Reset error state
         
-        if (!('serviceWorker' in navigator)) {
+        if (!isServiceWorkerSupported()) {
             console.log('Service Worker not supported');
             setError('Service Worker not supported');
             return;
@@ -119,7 +124,7 @@ export function LanguageDrawer({ currentLocale }: LanguageDrawerProps) {
 
                     <div className="text-center text-xs text-gray-500">
                         Service Worker Status: {
-                            navigator?.serviceWorker?.controller 
+                            typeof window !== 'undefined' && navigator?.serviceWorker?.controller 
                                 ? 'Active' 
                                 : 'Not Active'
                         }
