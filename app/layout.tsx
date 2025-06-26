@@ -9,7 +9,6 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'Next.js 15 Template',
   description: 'A Next.js 15 template with shadcn/ui, dark theme, and PWA support',
-  manifest: '/manifest.json',
   // themeColor: [
   //   { media: '(prefers-color-scheme: light)', color: 'white' },
   //   { media: '(prefers-color-scheme: dark)', color: 'black' },
@@ -23,7 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={inter.className} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
