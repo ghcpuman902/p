@@ -250,8 +250,8 @@ async function smartCacheAssets(locale, position = null) {
       const roomNumber = roomIndex + 1;
       const roomId = `room-${roomNumber}`;
       
-      // Add room audio
-      assetsToCache.push(`/van-gogh-assets/mp3/${locale}.${roomId}.mp3`);
+      // Add room audio (AAC format - smaller, better quality)
+      assetsToCache.push(`/van-gogh-assets/${locale}.${roomId}.aac`);
       
       // Add room image if exists
       if (room.roomImage) {
@@ -261,7 +261,7 @@ async function smartCacheAssets(locale, position = null) {
       // Add painting audio and images
       room.paintings.forEach((painting) => {
         const paintingId = `painting-${roomNumber}-${painting.paintingNumber}`;
-        assetsToCache.push(`/van-gogh-assets/mp3/${locale}.${paintingId}.mp3`);
+        assetsToCache.push(`/van-gogh-assets/${locale}.${paintingId}.aac`);
         
         if (painting.image) {
           assetsToCache.push(`/van-gogh-assets/${painting.image.url}`);
@@ -534,6 +534,23 @@ async function handleVanGoghNavigation(request) {
   
   console.log(`🚀 SW: Intercepting van-gogh navigation for: ${url.pathname} (${isOffline ? 'offline' : 'online'})`);
   
+  // Extract locale from URL path and detect locale changes
+  const pathParts = url.pathname.split('/');
+  if (pathParts.length >= 3) {
+    const newLocale = pathParts[2];
+    if (SUPPORTED_LOCALES.includes(newLocale) && newLocale !== currentLocale) {
+      console.log(`🌍 SW: Locale change detected: ${currentLocale} → ${newLocale}`);
+      currentLocale = newLocale;
+      
+      // Trigger smart asset caching for the new locale in the background
+      if (!isOffline) {
+        smartCacheAssets(newLocale, currentPosition).catch(error => {
+          console.warn('⚠️ SW: Background asset caching failed for new locale:', error);
+        });
+      }
+    }
+  }
+  
   const cache = await caches.open(CACHE_NAME);
   
   // ALWAYS try cache first for instant SPA-like navigation (exact match only)
@@ -565,7 +582,6 @@ async function handleVanGoghNavigation(request) {
   console.log(`📴 SW: Network unavailable, trying fallbacks for: ${url.pathname}`);
   
   // Try to get a similar page (same locale, different room/painting) - ONLY when offline
-  const pathParts = url.pathname.split('/');
   if (pathParts.length >= 3) {
     // Extract locale from URL path (e.g., /van-gogh/en-GB/room-2 -> en-GB)
     const locale = pathParts[2];
@@ -734,16 +750,17 @@ async function handleAssetRequest(request) {
     }
   }
   
-  // Return fallback for audio
+  // Return fallback for audio (prefer AAC, fallback to MP3)
   if (request.url.includes('.mp3') || request.url.includes('.aac')) {
-    const fallbackResponse = await assetsCache.match('/van-gogh-assets/mp3/silence.mp3');
-    if (fallbackResponse) {
-      return fallbackResponse;
-    }
-    // Try AAC fallback if MP3 not available
+    // Try AAC fallback first (preferred format)
     const aacFallbackResponse = await assetsCache.match('/van-gogh-assets/silence.aac');
     if (aacFallbackResponse) {
       return aacFallbackResponse;
+    }
+    // Try MP3 fallback if AAC not available
+    const mp3FallbackResponse = await assetsCache.match('/van-gogh-assets/mp3/silence.mp3');
+    if (mp3FallbackResponse) {
+      return mp3FallbackResponse;
     }
   }
   
@@ -803,24 +820,6 @@ self.addEventListener('message', async (event) => {
         });
         break;
 
-      case 'CHANGE_LOCALE':
-        // Change locale and trigger smart caching
-        if (data.locale && SUPPORTED_LOCALES.includes(data.locale)) {
-          currentLocale = data.locale;
-          console.log('🌍 SW: Locale changed to:', currentLocale);
-          
-          // Trigger smart asset caching for new locale
-          await smartCacheAssets(currentLocale, currentPosition);
-          
-          sendMessageResponse(event, {
-            success: true,
-            message: `Smart asset caching triggered for ${currentLocale}`
-          });
-        } else {
-          throw new Error('Invalid locale provided');
-        }
-        break;
-
       case 'GET_CACHED_DATA':
         // Return cached room data for client-side rendering
         if (data.locale && SUPPORTED_LOCALES.includes(data.locale)) {
@@ -836,18 +835,6 @@ self.addEventListener('message', async (event) => {
           } else {
             throw new Error('Room data not cached');
           }
-        } else {
-          throw new Error('Invalid locale provided');
-        }
-        break;
-
-      case 'CACHE_ASSETS':
-        if (data.locale && SUPPORTED_LOCALES.includes(data.locale)) {
-          await smartCacheAssets(data.locale, data.position);
-          sendMessageResponse(event, {
-            success: true,
-            message: `Smart asset caching triggered for ${data.locale}`
-          });
         } else {
           throw new Error('Invalid locale provided');
         }

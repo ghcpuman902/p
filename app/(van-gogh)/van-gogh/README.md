@@ -1,47 +1,76 @@
-# Van Gogh Exhibition Web App
+## Van Gogh Exhibition Web App
 
-This project is a digital adaptation of a Van Gogh exhibition booklet, originally available only in English. It leverages Next.js to deliver a smooth, multi-language browsing experience, highlighting modern web development practices like static generation, prefetching, and responsive design.
+A mobile-first, offline-capable, multilingual web app designed to enhance exhibition access for non-English speakers. Built with Next.js and a custom service worker architecture, the project delivers a seamless, language-aware experience optimised for both human and machine users.
 
-## Project Overview
+**DEMO:** [https://p.manglekuo.com/van-gogh](https://p.manglekuo.com/van-gogh)
 
-The web app serves as a virtual companion to the Van Gogh exhibition, offering an organised, multi-room structure that aligns with the exhibition layout. Each room contains an introduction and multiple paintings, giving users an intuitive way to explore the artwork.
+This project started with a simple, personal problem: the exhibition booklet was only in English. There was no on-wall text, no translation, and no accessible audio for non-English speakers. Wanting to share the exhibition experience with family who don’t read English, I began by scanning the printed leaflet. That single gesture turned into a larger exploration of how web technologies can fill the gap between cultural content and multilingual accessibility.
 
-### Key Objectives
+The initial idea was modest: scan, OCR, translate, and read aloud. But each step added complexity, and each challenge taught me something about how the modern web behaves under constraints. Over time, this became a testbed for exploring how to:
 
-- **Multi-language Support**: Extend the exhibition's accessibility by providing information in additional languages.
-- **Responsive & Snappy Navigation**: Optimise for fast loading and seamless transitions between rooms and paintings.
+- provide a robust offline-ready experience
+- use AI to generate synchronised audio
+- support multilingual users
+- find the balance between client and server
+
+I eventually achieved:
+
+### Exhibition-Like Navigation
+- Rooms are structured as real-world exhibition sections
+- Paintings are grouped by room with consistent layout
+- Native horizontal scroll mimics gallery flow
+
+### Offline-First Architecture
+- Once visited online, all content becomes fully available offline
+- Includes pages, images, text, and audio
+- Resilient even with JS disabled
+
+### Multi-Language Support
+- Simple hard navigation triggers locale switches
+- No language preload or toggles required
+- New locale assets are cached silently in the background
 
 ## Technical Highlights
 
-1. **Incremental Static Regeneration (ISR)**:
-   - Each room and painting page is pre-generated at build time, ensuring fast initial loads and stable URLs.
-   - Links function reliably even when JavaScript is disabled, allowing graceful degradation with server-rendered content.
+### Static Rendering via Next.js
+- Uses Incremental Static Regeneration (ISR)
+- Pages are stable and accessible even with JavaScript disabled
 
-2. **Dynamic URL Mapping & Prefetching**:
-   - The structure of the exhibition is mapped to RESTful URLs (`/room/[room-number]/painting/[painting-number]`), providing a clear and predictable routing schema.
-   - Next.js `Link` components enable prefetching, making navigation feel instant.
+### Custom Service Worker
+- We initially considered `next-pwa`, but found it too heavy for our needs
+- Wrote a service worker from scratch for full control
+- Intercepts navigation, caches assets contextually
 
-3. **Static Image Imports**:
-   - Images are imported statically, allowing Next.js to infer dimensions automatically during the build process, which enhances load times without requiring explicit image sizing.
+### Asset-Aware Caching Strategy
+- Current room assets are prioritised
+- Adjacent rooms are cached next
+- Remaining content loads progressively in background
 
-4. **Custom SVG Exhibition Map**:
-   - A minimalistic SVG map was designed to provide users with a quick visual guide of the exhibition layout.
-   - Lightweight and efficient, the SVG is rendered in stock mode with pure black lines, minimising load on client devices.
+### Lean Asset Delivery
+- Static image imports ensure known dimensions at build time
+- SVG-based map keeps rendering light and precise
+- MP3s compressed post-synthesis using ffmpeg
+- Image optimization using imagemagick
 
-5. **Optimised for Non-JavaScript Environments**:
-   - With JavaScript disabled, the app falls back to server-rendered pages, maintaining essential functionality.
-   - This approach ensures accessibility across diverse browsing environments, including low-bandwidth or limited-JS devices.
 
-6. **Smooth Horizontal Scrolling for Room Navigation**:
-   - Room and painting selection is enhanced with a horizontal scroll mechanism, giving a fluid browsing experience and reflecting the physical layout of the exhibition.
+## What We Learned (In Practice)
 
-## Why This Project is a Strong Demonstration of Next.js
+> Offline support is a browser-side concern
 
-This app exemplifies core Next.js features in a real-world context:
-- **Static Generation**: Demonstrates the power of pre-generated content and efficient data fetching.
-- **Prefetching & Fallbacks**: Showcases how prefetching via `Link` components enhances user experience while maintaining functionality without JavaScript.
-- **SVG Integration**: Illustrates custom SVG use in Next.js, providing interactive elements with minimal performance impact.
+I went in thinking offline capability was just a PWA toggle. Turns out, it is much deeper. Next.js gives great SSR and static rendering, but does not aim to make content offline. That part lives entirely in the browser and the service worker.
 
-## Personal Inspiration
+> Progressive web app is not by default a offline-first app
 
-The project originated as a personal gift idea, repurposing exhibition content into a keepsake. It has since evolved into a showcase of modern Next.js capabilities, particularly in delivering smooth, accessible, and multi-language digital experiences.
+I tried using [serwist](https://serwist.pages.dev/), a toolkit for building PWA with Next.js. I soon realised that for apps like mine, where content structure is fixed and no input is required, writing my own service worker was simpler and gave me full control over cache logic.
+
+> Caching boundaries needs to be carefully considered
+
+The app caches all assets of current locale aggressively as soon as user load a page. Switching language uses a full reload on purpose, so the service worker can detect the change and cache the new language silently. I find this the right balance between over-caching and under-caching.
+
+> A good audio expereince goes beyond screen reader
+
+I found that elements like images, links, names, and locations often require special handling when converting to audio, for example, the audio should read "please look at the screen" when there's an image. Since human voice audio does not require high quality, and can be compressed using ffmpeg to a small size, we tested and eventually used **32kbps at 16kHz** - achieving a **55% file size reduction** (from 70MB to 32MB) while maintaining indistinguishable audio quality. The OpenAI's Whisper offers advantages over a screen reader API due to multi linguo support, more natural flow, and more accurate pronunciation. I then adjusted the input text and used JavaScript to control the playback speed until I was satisfied with the natural flow.
+ 
+> Don't Cache Pages — Cache Content
+
+At first, I thought about caching React components or full pages. Eventually I realised the real value was in caching the data: the images, text, and audio. Everything else could be rebuilt quickly by the browser.

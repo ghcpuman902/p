@@ -27,16 +27,21 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Redirect to include the language instead of rewriting
-  const segments = pathname.split('/').filter(Boolean)
-  segments.splice(1, 0, lang)
-  const newPathname = '/' + segments.join('/')
+  // Redirect to the locale path - the page component will handle redirecting to the first room
+  const newPathname = `/van-gogh/${lang}`
   const newUrl = new URL(newPathname, request.url)
   
   // Preserve query parameters
   newUrl.search = request.nextUrl.search
   
-  return NextResponse.redirect(newUrl, 302)
+  const response = NextResponse.redirect(newUrl, 302)
+  
+  // Add cache control headers to prevent redirect caching
+  response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+  response.headers.set('Pragma', 'no-cache')
+  response.headers.set('Expires', '0')
+  
+  return response
 }
 
 export const config = {

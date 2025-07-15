@@ -229,10 +229,10 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
             audioRef.current.load();
         }
 
-        // Set up new audio source - use MP3 format for better browser compatibility
+        // Set up new audio source - prefer AAC format (smaller, better quality) with MP3 fallback
         const audioPath = currentPaintingId
-            ? `/van-gogh-assets/mp3/${currentLocale}.${currentPaintingId}.mp3`
-            : `/van-gogh-assets/mp3/${currentLocale}.${currentRoomId}.mp3`;
+            ? `/van-gogh-assets/${currentLocale}.${currentPaintingId}.aac`
+            : `/van-gogh-assets/${currentLocale}.${currentRoomId}.aac`;
 
         // Check if audio file exists via service worker cache
         try {
@@ -255,7 +255,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                     }
                     console.log('✅ Audio file found via network fallback');
                 } catch (networkError) {
-                    console.warn('Network fallback failed');
+                    console.warn('Network fallback failed', networkError);
                     setAudioSrc(null);
                     setIsPlaying(false);
                     wasPlayingRef.current = false;
