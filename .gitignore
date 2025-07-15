@@ -39,7 +39,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Serwist
-public/sw*
-public/swe-worker*
+# Service Worker (manual, not generated)
+# public/sw.js is manually created and should be committed
 certificates

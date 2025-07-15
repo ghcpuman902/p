@@ -6,7 +6,7 @@ import { Locale, SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/app/(van-gogh)/van-
 import OfflinePage from './Offline'
 // import { InstallPrompt } from '../components/InstallPrompt'
 
-const paintingIdNeeded = [13,18,19,35,3,43,48,47,58,59,23,53].sort((a, b) => a - b).map(num => `painting-${num}`)
+const paintingIdNeeded = [13, 18, 19, 35, 3, 43, 48, 47, 58, 59, 23, 53].sort((a, b) => a - b).map(num => `painting-${num}`)
 
 export async function generateStaticParams(): Promise<{ slug: string[] }[]> {
   const allParams = []
@@ -57,8 +57,8 @@ export async function generateStaticParams(): Promise<{ slug: string[] }[]> {
   return allParams
 }
 
-export default async function Page({ 
-  params 
+export default async function Page({
+  params
 }: {
   params: Promise<{ slug: string[] }>
 }) {
@@ -75,14 +75,14 @@ export default async function Page({
     const localeIndexes = slug
       .map((segment, index) => SUPPORTED_LOCALES.includes(segment as Locale) ? index : -1)
       .filter(index => index !== -1);
-    
+
     if (localeIndexes.length > 1) {
       // Keep only the last locale and everything after it
       return slug.slice(localeIndexes[localeIndexes.length - 1]);
     }
     return slug;
   })();
-  
+
   let locale: Locale = DEFAULT_LOCALE
   let roomId: string = ''
   let paintingId: string | undefined = undefined
@@ -92,7 +92,7 @@ export default async function Page({
     // Root path: redirect to first room with default locale
     const rooms = await getRooms(DEFAULT_LOCALE)
     if (rooms.length > 0) {
-      redirect(`/van-gogh/${rooms[0].id}`)
+      redirect(`/van-gogh/${DEFAULT_LOCALE}/${rooms[0].id}`)
     }
     return notFound()
   } else if (cleanSlug.length === 1) {
@@ -105,19 +105,27 @@ export default async function Page({
       }
       return notFound()
     } else {
+      // No locale prefix - redirect to default locale
       roomId = cleanSlug[0]
+      redirect(`/van-gogh/${DEFAULT_LOCALE}/${roomId}`)
     }
   } else if (cleanSlug.length === 2) {
     if (SUPPORTED_LOCALES.includes(cleanSlug[0] as Locale)) {
       locale = cleanSlug[0] as Locale
       roomId = cleanSlug[1]
     } else {
+      // No locale prefix - redirect to default locale
       roomId = cleanSlug[0]
       paintingId = cleanSlug[1]
+      redirect(`/van-gogh/${DEFAULT_LOCALE}/${roomId}${paintingId ? `/${paintingId}` : ''}`)
     }
   } else if (cleanSlug.length === 3) {
     if (!SUPPORTED_LOCALES.includes(cleanSlug[0] as Locale)) {
-      return notFound()
+      // No locale prefix - redirect to default locale
+      roomId = cleanSlug[0]
+      paintingId = cleanSlug[1]
+      const extraSegment = cleanSlug[2]
+      redirect(`/van-gogh/${DEFAULT_LOCALE}/${roomId}${paintingId ? `/${paintingId}` : ''}${extraSegment ? `/${extraSegment}` : ''}`)
     }
     locale = cleanSlug[0] as Locale
     roomId = cleanSlug[1]
@@ -131,7 +139,7 @@ export default async function Page({
   // First try to find room directly
   const currentRoom = rooms.find((room: Room) => room.id === roomId)
   let currentPainting: Painting | null = null
-  
+
   // If room not found, check if it's a painting number
   if (!currentRoom && roomId.startsWith('painting-')) {
     const paintingNumber = roomId.split('-')[1]
@@ -141,18 +149,17 @@ export default async function Page({
         (p: Painting) => p.paintingNumber === paintingNumber
       )
       if (painting) {
-        // Redirect to the canonical URL format, preserving language
-        const localePath = locale !== DEFAULT_LOCALE ? `/${locale}` : ''
-        redirect(`/van-gogh${localePath}/room-${painting.roomNumber}/${painting.id}`)
+        // Redirect to the canonical URL format with locale
+        redirect(`/van-gogh/${locale}/room-${painting.roomNumber}/${painting.id}`)
       }
     }
     // If we get here, painting number was invalid
-    notFound()
+    return notFound()
   }
 
   // Handle invalid room ID format or non-existent room
-  if (!currentRoom) {
-    notFound()
+  if (!currentRoom || !currentRoom.paintings) {
+    return notFound()
   }
 
   // Handle painting ID if provided
@@ -171,22 +178,20 @@ export default async function Page({
     if (currentPainting) {
       // Redirect to canonical URL format if necessary
       if (paintingId !== currentPainting.id) {
-        const localePath = locale !== DEFAULT_LOCALE ? `/${locale}` : ''
-        redirect(`/van-gogh${localePath}/${currentRoom.id}/${currentPainting.id}`)
+        redirect(`/van-gogh/${locale}/${currentRoom.id}/${currentPainting.id}`)
       }
     } else {
       // If painting doesn't exist in this room, redirect to room view
-      const localePath = locale !== DEFAULT_LOCALE ? `/${locale}` : ''
-      redirect(`/van-gogh${localePath}/${roomId}`)
+      redirect(`/van-gogh/${locale}/${roomId}`)
     }
   }
 
   return (
     <>
       <PaintingDetails
-        currentRoom={currentRoom}
-      currentPainting={currentPainting}
-      locale={locale}
+        currentRoom={currentRoom as Room}
+        currentPainting={currentPainting}
+        locale={locale}
       />
     </>
   )

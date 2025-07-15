@@ -8,16 +8,16 @@ export async function prefetchAssets(locale: Locale, rooms: Room[]) {
   // Collect all URLs that need to be cached
   const urlsToCache: string[] = []
 
-  // Add room audio and imagefiles
+  // Add room audio and imagefiles (MP3 format)
   rooms.forEach(room => {
-    urlsToCache.push(`/van-gogh-assets/${locale}.${room.id}.aac`)
+    urlsToCache.push(`/van-gogh-assets/mp3/${locale}.${room.id}.mp3`)
     if(room.roomImage) {
       urlsToCache.push(`/van-gogh-assets/${room.roomImage.url}`)
     }
     
     // Add painting audio and image files
     room.paintings.forEach(painting => {
-      urlsToCache.push(`/van-gogh-assets/${locale}.${painting.id}.aac`)
+      urlsToCache.push(`/van-gogh-assets/mp3/${locale}.${painting.id}.mp3`)
       if(painting.image) {
         urlsToCache.push(`/van-gogh-assets/${painting.image.url}`)
       }

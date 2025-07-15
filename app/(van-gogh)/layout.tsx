@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { getRooms } from './van-gogh/libs/getRooms'
 import { VanGoghNavigation } from './van-gogh/components/VanGoghNavigation'
 import { SUPPORTED_LOCALES, type Locale } from '@/app/(van-gogh)/van-gogh/libs/localization'
+import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -91,6 +92,50 @@ export default async function VanGoghLayout({
   return (
     <html suppressHydrationWarning>
       <body className={inter.className}>
+        <Script id="register-sw" strategy="afterInteractive">
+          {`
+            if ('serviceWorker' in navigator) {
+              window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                  .then(function(registration) {
+                    console.log('✅ SW: Data-first Service Worker registered successfully:', registration.scope);
+                    
+                    // Listen for service worker messages
+                    navigator.serviceWorker.addEventListener('message', function(event) {
+                      console.log('📨 SW: Received message from service worker:', event.data);
+                      
+                      if (event.data.type === 'ASSET_CACHE_COMPLETE') {
+                        console.log('🎉 SW: Asset caching completed for', event.data.locale);
+                        window.dispatchEvent(new CustomEvent('sw-asset-cache-complete', {
+                          detail: event.data
+                        }));
+                      } else if (event.data.type === 'DOWNLOAD_PROGRESS') {
+                        // You can dispatch custom events here for UI updates
+                        window.dispatchEvent(new CustomEvent('sw-download-progress', {
+                          detail: event.data
+                        }));
+                      } else if (event.data.type === 'DOWNLOAD_COMPLETE') {
+                        console.log('🎉 SW: Download completed for', event.data.locale);
+                        window.dispatchEvent(new CustomEvent('sw-download-complete', {
+                          detail: event.data
+                        }));
+                      } else if (event.data.type === 'DOWNLOAD_ERROR') {
+                        console.error('❌ SW: Download error for', event.data.locale, ':', event.data.error);
+                        window.dispatchEvent(new CustomEvent('sw-download-error', {
+                          detail: event.data
+                        }));
+                      }
+                    });
+                  })
+                  .catch(function(error) {
+                    console.error('❌ SW: Service Worker registration failed:', error);
+                  });
+              });
+            } else {
+              console.warn('⚠️ SW: Service Worker not supported in this browser');
+            }
+          `}
+        </Script>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

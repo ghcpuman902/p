@@ -10,7 +10,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Check if the pathname already includes a language
-  if (pathname.match(/^\/van-gogh\/(en-GB|zh-TW)/)) {
+  if (pathname.match(/^\/van-gogh\/(en-GB|zh-TW|zh-CN)/)) {
     return NextResponse.next()
   }
 
@@ -19,15 +19,24 @@ export function middleware(request: NextRequest) {
   let lang = 'en-GB'
 
   if (acceptLanguage && acceptLanguage.startsWith('zh')) {
-    lang = 'zh-TW'
+    // Check for specific Chinese variants
+    if (acceptLanguage.includes('zh-CN') || acceptLanguage.includes('zh-Hans')) {
+      lang = 'zh-CN'
+    } else {
+      lang = 'zh-TW'
+    }
   }
 
-  // Rewrite the URL to include the language
+  // Redirect to include the language instead of rewriting
   const segments = pathname.split('/').filter(Boolean)
   segments.splice(1, 0, lang)
   const newPathname = '/' + segments.join('/')
   const newUrl = new URL(newPathname, request.url)
-  return NextResponse.rewrite(newUrl)
+  
+  // Preserve query parameters
+  newUrl.search = request.nextUrl.search
+  
+  return NextResponse.redirect(newUrl, 302)
 }
 
 export const config = {

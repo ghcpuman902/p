@@ -40,7 +40,7 @@ export function SharedDrawer({ title, pageTitle = title, icon: Icon, children, i
             <Dialog open={isOpen} onOpenChange={onOpenChange}>
                 <DialogTrigger asChild>
                     <Button
-                        className="rounded-full h-8 flex items-center justify-center"
+                        className="rounded-full ring-1 ring-foreground/5 h-8 flex items-center justify-center"
                         size={title ? "default" : "icon"}
                         aria-label={title}
                     >
@@ -87,7 +87,7 @@ export function SharedDrawer({ title, pageTitle = title, icon: Icon, children, i
         >
             <Drawer.Trigger asChild>
                 <Button
-                    className="rounded-full h-8 flex items-center justify-center"
+                    className="rounded-full ring-1 ring-foreground/5 h-8 flex items-center justify-center"
                     size={title ? "default" : "icon"}
                     aria-label={title}
                 >

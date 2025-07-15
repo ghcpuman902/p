@@ -1,12 +1,11 @@
 'use client'
 
 import React, { useRef, useEffect, useState, useCallback } from 'react'
-import { usePathname, useSelectedLayoutSegments, useRouter } from 'next/navigation'
+import { usePathname, useSelectedLayoutSegments } from 'next/navigation'
 import { Button, ButtonProps, buttonVariants } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react'
 import { type Room, type Painting } from '../libs/types'
 import { cn } from '@/lib/utils'
-import Link from 'next/link'
 import { ExhibitionMapDrawer } from './ExhibitionMapDrawer'
 import { ChronologyDrawer } from './ChronologyDrawer'
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES, Locale, getTranslation } from '../libs/localization'
@@ -25,12 +24,12 @@ const DEFAULT_PLAYBACK_SPEED = 1.1
 export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationProps) {
     const pathname = usePathname()
     const segments = useSelectedLayoutSegments()
-    const router = useRouter()
 
     // In Next.js layout components, normal useState values reset on route changes
     // but refs persist across route changes. We use this to track audio state
     const wasPlayingRef = useRef(false)
     const audioRef = useRef<HTMLAudioElement | null>(null)
+    const lastPositionRef = useRef<{roomId: string, paintingId: string | undefined, locale: Locale} | null>(null)
 
     // These states will reset on route changes, but that's okay because
     // we use wasPlayingRef to determine if we should restart playback
@@ -189,27 +188,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
         return null;
     }
 
-    // Modify the isOffline state initialization and effect
-    const [isOffline, setIsOffline] = useState(true); // Default to offline until we confirm online status
 
-    useEffect(() => {
-        // Check if we're in a browser environment
-        if (typeof window !== 'undefined' && 'navigator' in window) {
-            // Set initial online status
-            setIsOffline(!window.navigator.onLine);
-
-            const handleOnline = () => setIsOffline(false);
-            const handleOffline = () => setIsOffline(true);
-
-            window.addEventListener('online', handleOnline);
-            window.addEventListener('offline', handleOffline);
-
-            return () => {
-                window.removeEventListener('online', handleOnline);
-                window.removeEventListener('offline', handleOffline);
-            };
-        }
-    }, []);
 
     // Add this new function near the top of the component
     const isValidAudioPath = useCallback((paintingId: string | undefined, roomId: string | undefined) => {
@@ -226,7 +205,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
             const validPaintingFormat = /^painting-(\d{1,2}|\d-\d{1,2})$/.test(paintingId);
             return validRoomFormat && validPaintingFormat;
         }
-        
+
         // If we only have paintingId, check its format
         return paintingId ? /^painting-(\d{1,2}|\d-\d{1,2})$/.test(paintingId) : false;
     }, []);
@@ -246,31 +225,53 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
         if (audioRef.current) {
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
-            audioRef.current.src = '';
+            audioRef.current.removeAttribute('src');
             audioRef.current.load();
         }
 
-        // Set up new audio source
+        // Set up new audio source - use MP3 format for better browser compatibility
         const audioPath = currentPaintingId
-            ? `/van-gogh-assets/${currentLocale}.${currentPaintingId}.aac`
-            : `/van-gogh-assets/${currentLocale}.${currentRoomId}.aac`;
+            ? `/van-gogh-assets/mp3/${currentLocale}.${currentPaintingId}.mp3`
+            : `/van-gogh-assets/mp3/${currentLocale}.${currentRoomId}.mp3`;
 
-        // Verify the audio file exists before setting it
+        // Check if audio file exists via service worker cache
         try {
-            const response = await fetch(audioPath, { method: 'HEAD' });
-            if (!response.ok) {
-                console.warn(`Audio file not found: ${audioPath}`);
-                setAudioSrc(null);
-                setIsPlaying(false);
-                wasPlayingRef.current = false;
-                return;
-            }
+            console.log('🔍 Checking audio file via service worker:', audioPath);
             
-            setAudioSrc(audioPath);
+            // Always try service worker cache first, then network as fallback
+            const cache = await caches.open('van-gogh-assets-v4');
+            const cachedResponse = await cache.match(audioPath);
+            
+            if (!cachedResponse) {
+                console.warn(`❌ Audio file not cached: ${audioPath}`);
+                // Try network as fallback
+                try {
+                    const testResponse = await fetch(audioPath, { method: 'HEAD', cache: 'no-cache' });
+                    if (!testResponse.ok) {
+                        setAudioSrc(null);
+                        setIsPlaying(false);
+                        wasPlayingRef.current = false;
+                        return;
+                    }
+                    console.log('✅ Audio file found via network fallback');
+                } catch (networkError) {
+                    console.warn('Network fallback failed');
+                    setAudioSrc(null);
+                    setIsPlaying(false);
+                    wasPlayingRef.current = false;
+                    return;
+                }
+            } else {
+                console.log('✅ Audio file found in service worker cache:', audioPath);
+            }
 
+            console.log('🎵 Setting audio source:', audioPath);
+            setAudioSrc(audioPath);
+            
             // Wait for next tick to ensure audio element has updated
             await new Promise(resolve => setTimeout(resolve, 0));
 
+            // Audio element should always be present now
             if (audioRef.current) {
                 // Set playback speed immediately
                 audioRef.current.playbackRate = DEFAULT_PLAYBACK_SPEED;
@@ -293,6 +294,8 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                         wasPlayingRef.current = false;
                     }
                 }
+            } else {
+                console.warn('Audio element not found after setting source');
             }
         } catch (error) {
             console.warn('Error checking audio file:', error);
@@ -300,39 +303,99 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
             setIsPlaying(false);
             wasPlayingRef.current = false;
         }
-    }, [currentLocale, currentPaintingId, currentRoomId, isValidAudioPath]);
+            }, [currentLocale, currentPaintingId, currentRoomId, isValidAudioPath]);
 
-    // Add a new effect to ensure playback speed is maintained
+    // Add a new effect to ensure playback speed is maintained and audio is properly initialized
     useEffect(() => {
-        if (audioRef.current) {
+        if (audioRef.current && audioSrc && audioSrc.trim() !== '') {
+            // Ensure the audio element has the correct source
+            if (audioRef.current.src !== audioSrc) {
+                audioRef.current.src = audioSrc;
+                audioRef.current.load();
+                console.log('Audio source updated in effect:', audioSrc);
+            }
+            
             audioRef.current.playbackRate = DEFAULT_PLAYBACK_SPEED;
             console.log('Playback speed set in effect:', audioRef.current.playbackRate); // Debug log
+        } else if (audioRef.current && (!audioSrc || audioSrc.trim() === '')) {
+            // Remove the source if we don't have a valid one
+            audioRef.current.removeAttribute('src');
+            audioRef.current.load();
         }
     }, [audioSrc]);
 
     // Modify playAudio function
     const playAudio = useCallback(async () => {
-        if (!audioRef.current || !audioSrc) return;
+        if (!audioRef.current) {
+            console.warn('Cannot play audio: missing audio element');
+            return;
+        }
+        
+        if (!audioSrc || audioSrc.trim() === '') {
+            console.warn('Cannot play audio: missing or empty audio source');
+            return;
+        }
 
         try {
-            if (isOffline) {
-                const cache = await caches.open('van-gogh-assets');
-                const cachedResponse = await cache.match(audioSrc);
-
-                if (!cachedResponse) {
-                    throw new Error('Audio not cached');
-                }
+            // Ensure audio element has the correct source
+            if (audioRef.current.src !== audioSrc) {
+                console.log('Audio source mismatch, updating...');
+                audioRef.current.src = audioSrc;
+                audioRef.current.load();
+            }
+            
+            // Ensure audio element is properly loaded
+            if (audioRef.current.readyState === 0) {
+                console.log('Audio not loaded yet, waiting...');
+                await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => reject(new Error('Audio load timeout')), 5000);
+                    audioRef.current!.addEventListener('canplaythrough', () => {
+                        clearTimeout(timeout);
+                        resolve(true);
+                    }, { once: true });
+                    audioRef.current!.addEventListener('error', () => {
+                        clearTimeout(timeout);
+                        reject(new Error('Audio load failed'));
+                    }, { once: true });
+                });
             }
 
-            await audioRef.current.play();
-            setIsPlaying(true);
-            wasPlayingRef.current = true;
+            // Always check service worker cache first
+            const cache = await caches.open('van-gogh-assets-v4');
+            const cachedResponse = await cache.match(audioSrc);
+
+            if (!cachedResponse) {
+                console.warn('Audio not in service worker cache, will rely on network');
+            }
+
+            // Try to play with retry logic
+            let retryCount = 0;
+            const maxRetries = 3;
+            
+            while (retryCount < maxRetries) {
+                try {
+                    await audioRef.current.play();
+                    setIsPlaying(true);
+                    wasPlayingRef.current = true;
+                    break;
+                } catch (playError) {
+                    retryCount++;
+                    console.warn(`Audio play attempt ${retryCount} failed:`, playError);
+                    
+                    if (retryCount >= maxRetries) {
+                        throw playError;
+                    }
+                    
+                    // Wait a bit before retrying
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+            }
         } catch (error) {
             console.warn('Error playing audio:', error);
             setIsPlaying(false);
             wasPlayingRef.current = false;
         }
-    }, [isOffline, audioSrc]);
+    }, [audioSrc]);
 
     // Handle navigation while preserving audio state
     const handleNavigation = async (url: string | null) => {
@@ -346,55 +409,20 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                 audioRef.current.currentTime = 0
             }
 
-            // // Use the same URL parsing logic as before
-            // const pathParts = url.split('van-gogh/')[1]?.split('/') || []
-            // const cleanPathParts = (() => {
-            //     const localeIndexes = pathParts
-            //         .map((part, index) => SUPPORTED_LOCALES.includes(part as Locale) ? index : -1)
-            //         .filter(index => index !== -1)
-
-            //     // If multiple locales found, use everything after the last locale
-            //     if (localeIndexes.length > 1) {
-            //         return pathParts.slice(localeIndexes[localeIndexes.length - 1])
-            //     }
-            //     return pathParts
-            // })()
-
-            // let [newLocale, newRoomId, newPaintingId] = cleanPathParts as [Locale, string, string]
-
-            // // Handle cases where locale is not in the URL
-            // if (!SUPPORTED_LOCALES.includes(newLocale as Locale)) {
-            //     newPaintingId = newRoomId
-            //     newRoomId = newLocale
-            //     newLocale = locale // Use the current locale from props
-            // }
-
-            // // Handle painting numbers in room IDs
-            // if (newRoomId?.startsWith('painting-')) {
-            //     const paintingNumber = newRoomId.split('-')[1]
-            //     const painting = rooms.flatMap((room: Room) => room.paintings)
-            //         .find((painting: Painting) => painting.paintingNumber === paintingNumber)
-
-            //     if (painting) {
-            //         newRoomId = `room-${painting.roomNumber}`
-            //         newPaintingId = painting.id
-            //     }
-            // }
-
-            // console.table({newPaintingId, newRoomId})
-            // // Construct audio path only if we have valid IDs
-            // if (isValidAudioPath(newPaintingId, newRoomId)) {
-            //     const newAudioPath = newPaintingId
-            //         ? `/van-gogh-assets/${newLocale}.${newPaintingId}.aac`
-            //         : `/van-gogh-assets/${newLocale}.${newRoomId}.aac`
-                
-            //     setAudioSrc(newAudioPath)
-            //     console.log("New audio path:", newAudioPath)
-            // }else{
-            //     console.warn("Invalid audio path parameters detected:", newPaintingId, newRoomId)
-            // }
-
-            router.push(url)
+            // Use window.location with service worker interception for SPA-like performance
+            // SW will serve from cache instantly if available, making navigation feel instant
+            console.log('🚀 SPA-style navigation (SW will serve from cache):', url);
+            const startTime = performance.now();
+            
+            // Listen for page load to measure navigation speed
+            const handleLoad = () => {
+                const loadTime = performance.now() - startTime;
+                console.log(`⚡ Navigation completed in ${loadTime.toFixed(2)}ms (${loadTime < 100 ? 'cache hit' : 'network fallback'})`);
+                window.removeEventListener('load', handleLoad);
+            };
+            window.addEventListener('load', handleLoad);
+            
+            window.location.href = url;
         }
     }
 
@@ -406,16 +434,40 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
         // Store ref in a variable that's captured in the closure
         const audio = audioRef.current
 
+        // Update service worker with current position (only if position is valid and has changed)
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller && currentRoomId) {
+            const position = {
+                roomId: currentRoomId,
+                paintingId: currentPaintingId
+            }
+            
+            const lastPosition = lastPositionRef.current
+            const positionChanged = !lastPosition || 
+                lastPosition.roomId !== currentRoomId || 
+                lastPosition.paintingId !== currentPaintingId ||
+                lastPosition.locale !== currentLocale
+            
+            if (positionChanged) {
+                lastPositionRef.current = { roomId: currentRoomId, paintingId: currentPaintingId, locale: currentLocale }
+                
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'UPDATE_POSITION',
+                    position,
+                    locale: currentLocale
+                });
+            }
+        }
+
         // Cleanup function runs before next effect and on unmount
         return () => {
             if (audio) {
                 audio.pause()
                 audio.currentTime = 0
-                audio.src = ''
+                audio.removeAttribute('src')
                 audio.load()
             }
         }
-    }, [pathname, setAudioSource])
+    }, [pathname, setAudioSource, currentRoomId, currentPaintingId, currentLocale])
 
     // Toggle audio playback
     const toggleAudio = () => {
@@ -515,9 +567,9 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                                         room.id === currentRoomId ? "bg-secondary text-secondary-foreground hover:bg-secondary/90 hover:text-secondary-foreground active:bg-secondary/60 active:text-secondary-foreground" : "opacity-60 dark:opacity-60 hover:opacity-80")}
                                     asChild
                                 >
-                                    <Link href={`/van-gogh/${locale}/${room.id}`}>
+                                    <a href={`/van-gogh/${locale}/${room.id}`}>
                                         {room.paintings.length ? `${room.roomNumber}: ${room.roomTitle}` : getTranslation(locale, "end")}
-                                    </Link>
+                                    </a>
                                 </Button>
                             ))}
                         </div>
@@ -548,9 +600,9 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                                         }}
                                         asChild
                                     >
-                                        <Link href={`/van-gogh/${currentLocale}/${room.id}/${painting.id}`}>
+                                        <a href={`/van-gogh/${currentLocale}/${room.id}/${painting.id}`}>
                                             {painting.paintingNumber}
-                                        </Link>
+                                        </a>
                                     </Button>
                                 )) : []),
                                 roomIndex < rooms.length - 1 && rooms[roomIndex + 1].paintings.length ? (
@@ -578,10 +630,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                 <div className="flex justify-stretch gap-2 bg-transparent">
                     <BottomNaButton
                         className="rounded-tr-xl"
-                        onClick={() => {
-                            const prevUrl = getPreviousUrl()
-                            if (prevUrl) router.push(prevUrl)
-                        }}
+                        onClick={() => handleNavigation(getPreviousUrl())}
                         disabled={!getPreviousUrl()}
                     >
                         <ChevronLeft className="h-6 w-6" />
@@ -607,6 +656,8 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                         <ChevronRight className="h-6 w-6" />
                     </BottomNaButton>
                 </div>
+
+
 
                 <div
                     className="w-full h-4 bg-gray-200 dark:bg-gray-700 cursor-pointer progress-bar touch-none"
@@ -635,29 +686,48 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                     />
                 </div>
             </div>
-            {audioSrc && (
-                <audio
-                    ref={audioRef}
-                    src={audioSrc}
-                    onError={(e) => {
-                        const error = e.currentTarget as HTMLAudioElement;
-                        console.warn(`Audio Error: ${error.error?.message || 'Unknown error'}`);
-                        console.warn(`Audio source that failed: ${error.currentSrc}`);
-                        setIsPlaying(false);
-                        wasPlayingRef.current = false;
-                    }}
-                    onTimeUpdate={() => {
-                        if (audioRef.current) {
-                            setProgress((audioRef.current.currentTime / audioRef.current.duration) * 100)
-                        }
-                    }}
-                    onEnded={() => {
-                        setIsPlaying(false)
-                        wasPlayingRef.current = false
-                        setProgress(0)
-                    }}
-                />
-            )}
+            {/* Always render audio element, but only set src when we have a valid source */}
+            <audio
+                ref={audioRef}
+                src={audioSrc || undefined}
+                preload="auto"
+                style={{ display: 'none' }}
+                onError={(e) => {
+                    const error = e.currentTarget as HTMLAudioElement;
+                    console.warn(`Audio Error: ${error.error?.message || 'Unknown error'}`);
+                    console.warn(`Audio source that failed: ${error.currentSrc}`);
+                    console.warn(`Audio readyState: ${error.readyState}`);
+                    console.warn(`Audio element:`, error);
+                    console.warn(`Audio src attribute: ${error.src}`);
+                    setIsPlaying(false);
+                    wasPlayingRef.current = false;
+                }}
+                onLoadStart={() => {
+                    if (audioSrc) {
+                        console.log('Audio loading started:', audioSrc);
+                    }
+                }}
+                onCanPlay={() => {
+                    if (audioSrc) {
+                        console.log('Audio can play:', audioSrc);
+                    }
+                }}
+                onCanPlayThrough={() => {
+                    if (audioSrc) {
+                        console.log('Audio can play through:', audioSrc);
+                    }
+                }}
+                onTimeUpdate={() => {
+                    if (audioRef.current) {
+                        setProgress((audioRef.current.currentTime / audioRef.current.duration) * 100)
+                    }
+                }}
+                onEnded={() => {
+                    setIsPlaying(false)
+                    wasPlayingRef.current = false
+                    setProgress(0)
+                }}
+            />
         </>
     )
 }
@@ -666,7 +736,7 @@ const BottomNaButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
     function BottomNaButton({ className, variant, size, asChild = false, ...props }, ref) {
         return (
             <Button
-                className={cn(buttonVariants({ variant, size, className }), "h-12 flex-1 flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary/90", className)}
+                className={cn(buttonVariants({ variant, size, className }), "h-12 flex-1 flex items-center justify-center ring-1 ring-foreground/5 bg-primary text-primary-foreground hover:bg-primary/90", className)}
                 ref={ref}
                 {...props}
                 asChild={asChild}

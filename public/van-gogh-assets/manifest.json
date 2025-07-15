@@ -1,4 +1,5 @@
 {
+    "id": "/van-gogh",
     "name": "Van Gogh Digital Guide",
     "short_name": "Van Gogh Guide",
     "description": "A digital guide to Van Gogh's gallery exhibition, offering multilingual support, in-depth artwork details, and AI-driven commentary.",
@@ -6,32 +7,56 @@
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#000000",
+    "orientation": "portrait",
+    "scope": "/van-gogh",
+    "categories": ["education", "travel", "art"],
+    "lang": "en",
     "icons": [
       {
         "src": "/van-gogh-assets/favicon-96x96.png",
         "sizes": "96x96",
-        "type": "image/png"
+        "type": "image/png",
+        "purpose": "any"
       },
       {
         "src": "/van-gogh-assets/icon-192x192.png",
         "sizes": "192x192",
         "type": "image/png",
-        "purpose": "any maskable"
+        "purpose": "any"
       },
       {
         "src": "/van-gogh-assets/icon-512x512.png",
         "sizes": "512x512",
         "type": "image/png",
-        "purpose": "any maskable"
+        "purpose": "any"
       },
       {
         "src": "/van-gogh-assets/apple-touch-icon.png",
         "sizes": "180x180",
-        "type": "image/png"
+        "type": "image/png",
+        "purpose": "any"
       },
       {
         "src": "/van-gogh-assets/favicon.svg",
-        "type": "image/svg+xml"
+        "sizes": "any",
+        "type": "image/svg+xml",
+        "purpose": "any"
+      }
+    ],
+    "screenshots": [
+      {
+        "src": "/van-gogh-assets/screenshot-desktop.png",
+        "sizes": "1280x720",
+        "type": "image/png",
+        "form_factor": "wide",
+        "label": "Van Gogh Digital Guide on Desktop"
+      },
+      {
+        "src": "/van-gogh-assets/screenshot-mobile.png",
+        "sizes": "390x844",
+        "type": "image/png",
+        "form_factor": "narrow",
+        "label": "Van Gogh Digital Guide on Mobile"
       }
     ]
 }
