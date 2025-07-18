@@ -68,8 +68,8 @@ export const metadata: Metadata = {
 
 export const viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'rgba(244,244,245,0.8)'},
-    { media: '(prefers-color-scheme: dark)', color: 'rgba(0,0,0,0.8)' }
+    { media: '(prefers-color-scheme: light)', color: 'hsl(var(--secondary))'},
+    { media: '(prefers-color-scheme: dark)', color: 'hsl(var(--secondary-invert))' }
   ],
   width: 'device-width',
   initialScale: 1,

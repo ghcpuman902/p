@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useRef, useEffect, useState, useCallback } from 'react'
-import { usePathname, useSelectedLayoutSegments } from 'next/navigation'
+import { usePathname, useSelectedLayoutSegments, useRouter } from 'next/navigation'
 import { Button, ButtonProps, buttonVariants } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react'
 import { type Room, type Painting } from '../libs/types'
@@ -24,15 +24,11 @@ const DEFAULT_PLAYBACK_SPEED = 1.1
 export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationProps) {
     const pathname = usePathname()
     const segments = useSelectedLayoutSegments()
+    const router = useRouter()
 
-    // In Next.js layout components, normal useState values reset on route changes
-    // but refs persist across route changes. We use this to track audio state
-    const wasPlayingRef = useRef(false)
+    // Audio state management - simplified
     const audioRef = useRef<HTMLAudioElement | null>(null)
-    const lastPositionRef = useRef<{roomId: string, paintingId: string | undefined, locale: Locale} | null>(null)
-
-    // These states will reset on route changes, but that's okay because
-    // we use wasPlayingRef to determine if we should restart playback
+    const abortControllerRef = useRef<AbortController | null>(null)
     const [isPlaying, setIsPlaying] = useState(false)
     const [progress, setProgress] = useState(0)
     const [audioSrc, setAudioSrc] = useState<string | null>(null)
@@ -102,6 +98,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
         currentPaintingId = ''
     }
 
+    // Scroll to active elements - simplified
     useEffect(() => {
         const activeRoom = document.querySelector('[data-room-active="true"]')
         const activePainting = document.querySelector('[data-painting-active="true"]')
@@ -109,16 +106,12 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
         activeRoom?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
 
         if (!activePainting && activeRoom) {
-            // Find the active room's data
             const activeRoomData = rooms.find(r => r.id === activeRoom.getAttribute('data-room-id'))
-
-            // Only try to scroll to first painting if the room has paintings
             if (activeRoomData?.paintings.length) {
                 const firstPainting = document.querySelector(`[data-painting-id="${activeRoomData.paintings[0].id}"]`);
                 if (firstPainting) {
                     const previousSeparator = firstPainting.previousElementSibling
                     if (previousSeparator?.classList.contains('separator')) {
-                        // Scroll to previous separator
                         previousSeparator.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
                     } else {
                         firstPainting.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
@@ -126,15 +119,11 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                 }
             }
         } else if (activePainting) {
-            // Scroll to previous separator or painting
             const previousSeparator = activePainting.previousElementSibling
             if (previousSeparator?.classList.contains('separator')) {
-                // Scroll to previous separator
                 previousSeparator.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
             } else {
-                // Scroll to previous painting
                 activePainting.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
-                // ADD 8px to the left of the parent scroll container
                 const parentScrollContainer = activePainting.parentElement
                 if (parentScrollContainer) {
                     parentScrollContainer.scrollLeft += 100
@@ -188,286 +177,103 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
         return null;
     }
 
+    // Simplified audio source setting - let service worker handle caching
+    const setAudioSource = useCallback(() => {
+        // Cancel any ongoing operations
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort()
+        }
+        abortControllerRef.current = new AbortController()
 
-
-    // Add this new function near the top of the component
-    const isValidAudioPath = useCallback((paintingId: string | undefined, roomId: string | undefined) => {
-        // If we have neither ID, path is invalid
-        if (typeof paintingId !== 'string' && typeof roomId !== 'string') return false;
-        
-        // If we have a roomId, check it's valid format (room-1 through room-9)
-        if (roomId) {
-            const validRoomFormat = /^room-\d$/.test(roomId);
-            // If we only have roomId, that's valid as long as format is correct
-            if (!paintingId) return validRoomFormat;
-            
-            // If we have both, check painting format too
-            const validPaintingFormat = /^painting-(\d{1,2}|\d-\d{1,2})$/.test(paintingId);
-            return validRoomFormat && validPaintingFormat;
+        // Basic validation
+        if (!currentRoomId && !currentPaintingId) {
+            setAudioSrc(null)
+            setIsPlaying(false)
+            return
         }
 
-        // If we only have paintingId, check its format
-        return paintingId ? /^painting-(\d{1,2}|\d-\d{1,2})$/.test(paintingId) : false;
-    }, []);
-
-    // Modify setAudioSource function
-    const setAudioSource = useCallback(async () => {
-        // Don't proceed if IDs are invalid
-        if (!isValidAudioPath(currentPaintingId, currentRoomId)) {
-            console.warn('Invalid audio path parameters detected:', currentPaintingId, currentRoomId);
-            setAudioSrc(null);
-            setIsPlaying(false);
-            wasPlayingRef.current = false;
-            return;
-        }
-
-        // Clean up existing audio first
-        if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
-            audioRef.current.removeAttribute('src');
-            audioRef.current.load();
-        }
-
-        // Set up new audio source - prefer AAC format (smaller, better quality) with MP3 fallback
+        // Set audio source - let service worker handle availability
         const audioPath = currentPaintingId
             ? `/van-gogh-assets/${currentLocale}.${currentPaintingId}.aac`
-            : `/van-gogh-assets/${currentLocale}.${currentRoomId}.aac`;
+            : `/van-gogh-assets/${currentLocale}.${currentRoomId}.aac`
 
-        // Check if audio file exists via service worker cache
-        try {
-            console.log('🔍 Checking audio file via service worker:', audioPath);
-            
-            // Always try service worker cache first, then network as fallback
-            const cache = await caches.open('van-gogh-assets-v4');
-            const cachedResponse = await cache.match(audioPath);
-            
-            if (!cachedResponse) {
-                console.warn(`❌ Audio file not cached: ${audioPath}`);
-                // Try network as fallback
-                try {
-                    const testResponse = await fetch(audioPath, { method: 'HEAD', cache: 'no-cache' });
-                    if (!testResponse.ok) {
-                        setAudioSrc(null);
-                        setIsPlaying(false);
-                        wasPlayingRef.current = false;
-                        return;
-                    }
-                    console.log('✅ Audio file found via network fallback');
-                } catch (networkError) {
-                    console.warn('Network fallback failed', networkError);
-                    setAudioSrc(null);
-                    setIsPlaying(false);
-                    wasPlayingRef.current = false;
-                    return;
-                }
-            } else {
-                console.log('✅ Audio file found in service worker cache:', audioPath);
-            }
+        setAudioSrc(audioPath)
+        console.log('🎵 Setting audio source:', audioPath)
+    }, [currentLocale, currentPaintingId, currentRoomId])
 
-            console.log('🎵 Setting audio source:', audioPath);
-            setAudioSrc(audioPath);
-            
-            // Wait for next tick to ensure audio element has updated
-            await new Promise(resolve => setTimeout(resolve, 0));
-
-            // Audio element should always be present now
-            if (audioRef.current) {
-                // Set playback speed immediately
-                audioRef.current.playbackRate = DEFAULT_PLAYBACK_SPEED;
-                
-                // Also set playback speed when audio loads
-                audioRef.current.addEventListener('loadeddata', () => {
-                    if (audioRef.current) {
-                        audioRef.current.playbackRate = DEFAULT_PLAYBACK_SPEED;
-                        console.log('Playback speed set to:', audioRef.current.playbackRate); // Debug log
-                    }
-                }, { once: true });
-
-                if (wasPlayingRef.current) {
-                    try {
-                        await audioRef.current.play();
-                        setIsPlaying(true);
-                    } catch (error) {
-                        console.error('Error playing audio:', error);
-                        setIsPlaying(false);
-                        wasPlayingRef.current = false;
-                    }
-                }
-            } else {
-                console.warn('Audio element not found after setting source');
-            }
-        } catch (error) {
-            console.warn('Error checking audio file:', error);
-            setAudioSrc(null);
-            setIsPlaying(false);
-            wasPlayingRef.current = false;
-        }
-            }, [currentLocale, currentPaintingId, currentRoomId, isValidAudioPath]);
-
-    // Add a new effect to ensure playback speed is maintained and audio is properly initialized
-    useEffect(() => {
-        if (audioRef.current && audioSrc && audioSrc.trim() !== '') {
-            // Ensure the audio element has the correct source
-            if (audioRef.current.src !== audioSrc) {
-                audioRef.current.src = audioSrc;
-                audioRef.current.load();
-                console.log('Audio source updated in effect:', audioSrc);
-            }
-            
-            audioRef.current.playbackRate = DEFAULT_PLAYBACK_SPEED;
-            console.log('Playback speed set in effect:', audioRef.current.playbackRate); // Debug log
-        } else if (audioRef.current && (!audioSrc || audioSrc.trim() === '')) {
-            // Remove the source if we don't have a valid one
-            audioRef.current.removeAttribute('src');
-            audioRef.current.load();
-        }
-    }, [audioSrc]);
-
-    // Modify playAudio function
+    // Simplified audio playback
     const playAudio = useCallback(async () => {
-        if (!audioRef.current) {
-            console.warn('Cannot play audio: missing audio element');
-            return;
-        }
-        
-        if (!audioSrc || audioSrc.trim() === '') {
-            console.warn('Cannot play audio: missing or empty audio source');
-            return;
+        if (!audioRef.current || !audioSrc) {
+            console.warn('Cannot play audio: missing audio element or source')
+            return
         }
 
         try {
-            // Ensure audio element has the correct source
-            if (audioRef.current.src !== audioSrc) {
-                console.log('Audio source mismatch, updating...');
-                audioRef.current.src = audioSrc;
-                audioRef.current.load();
-            }
+            // Set playback speed
+            audioRef.current.playbackRate = DEFAULT_PLAYBACK_SPEED
             
-            // Ensure audio element is properly loaded
-            if (audioRef.current.readyState === 0) {
-                console.log('Audio not loaded yet, waiting...');
-                await new Promise((resolve, reject) => {
-                    const timeout = setTimeout(() => reject(new Error('Audio load timeout')), 5000);
-                    audioRef.current!.addEventListener('canplaythrough', () => {
-                        clearTimeout(timeout);
-                        resolve(true);
-                    }, { once: true });
-                    audioRef.current!.addEventListener('error', () => {
-                        clearTimeout(timeout);
-                        reject(new Error('Audio load failed'));
-                    }, { once: true });
-                });
-            }
-
-            // Always check service worker cache first
-            const cache = await caches.open('van-gogh-assets-v4');
-            const cachedResponse = await cache.match(audioSrc);
-
-            if (!cachedResponse) {
-                console.warn('Audio not in service worker cache, will rely on network');
-            }
-
-            // Try to play with retry logic
-            let retryCount = 0;
-            const maxRetries = 3;
-            
-            while (retryCount < maxRetries) {
-                try {
-                    await audioRef.current.play();
-                    setIsPlaying(true);
-                    wasPlayingRef.current = true;
-                    break;
-                } catch (playError) {
-                    retryCount++;
-                    console.warn(`Audio play attempt ${retryCount} failed:`, playError);
-                    
-                    if (retryCount >= maxRetries) {
-                        throw playError;
-                    }
-                    
-                    // Wait a bit before retrying
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                }
-            }
+            await audioRef.current.play()
+            setIsPlaying(true)
         } catch (error) {
-            console.warn('Error playing audio:', error);
-            setIsPlaying(false);
-            wasPlayingRef.current = false;
+            console.warn('Error playing audio:', error)
+            setIsPlaying(false)
         }
-    }, [audioSrc]);
+    }, [audioSrc])
 
-    // Handle navigation while preserving audio state
-    const handleNavigation = async (url: string | null) => {
+    // Use Next.js router for navigation instead of window.location
+    const handleNavigation = (url: string | null) => {
         if (url) {
-            // Store playing state in ref so it persists across route change
-            wasPlayingRef.current = isPlaying
-
-            // Clean up current audio before navigation
+            // Pause audio before navigation
             if (audioRef.current) {
                 audioRef.current.pause()
                 audioRef.current.currentTime = 0
             }
+            setIsPlaying(false)
 
-            // Use window.location with service worker interception for SPA-like performance
-            // SW will serve from cache instantly if available, making navigation feel instant
-            console.log('🚀 SPA-style navigation (SW will serve from cache):', url);
-            const startTime = performance.now();
-            
-            // Listen for page load to measure navigation speed
-            const handleLoad = () => {
-                const loadTime = performance.now() - startTime;
-                console.log(`⚡ Navigation completed in ${loadTime.toFixed(2)}ms (${loadTime < 100 ? 'cache hit' : 'network fallback'})`);
-                window.removeEventListener('load', handleLoad);
-            };
-            window.addEventListener('load', handleLoad);
-            
-            window.location.href = url;
+            // Use Next.js router
+            router.push(url)
         }
     }
 
-    // Effect runs on pathname changes (route changes)
-    // This is where we handle audio setup after navigation
+    // Effect for audio setup - simplified
     useEffect(() => {
         setAudioSource()
 
-        // Store ref in a variable that's captured in the closure
-        const audio = audioRef.current
-
-        // Update service worker with current position (only if position is valid and has changed)
+        // Update service worker with current position
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller && currentRoomId) {
-            const position = {
-                roomId: currentRoomId,
-                paintingId: currentPaintingId
-            }
-            
-            const lastPosition = lastPositionRef.current
-            const positionChanged = !lastPosition || 
-                lastPosition.roomId !== currentRoomId || 
-                lastPosition.paintingId !== currentPaintingId ||
-                lastPosition.locale !== currentLocale
-            
-            if (positionChanged) {
-                lastPositionRef.current = { roomId: currentRoomId, paintingId: currentPaintingId, locale: currentLocale }
-                
-                navigator.serviceWorker.controller.postMessage({
-                    type: 'UPDATE_POSITION',
-                    position,
-                    locale: currentLocale
-                });
-            }
+            navigator.serviceWorker.controller.postMessage({
+                type: 'UPDATE_POSITION',
+                position: {
+                    roomId: currentRoomId,
+                    paintingId: currentPaintingId
+                },
+                locale: currentLocale
+            })
         }
 
-        // Cleanup function runs before next effect and on unmount
+        // Cleanup function
         return () => {
-            if (audio) {
-                audio.pause()
-                audio.currentTime = 0
-                audio.removeAttribute('src')
-                audio.load()
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort()
             }
         }
     }, [pathname, setAudioSource, currentRoomId, currentPaintingId, currentLocale])
+
+    // Cleanup on unmount
+    useEffect(() => {
+        const audioElement = audioRef.current
+        const abortController = abortControllerRef.current
+        
+        return () => {
+            if (abortController) {
+                abortController.abort()
+            }
+            if (audioElement) {
+                audioElement.pause()
+                audioElement.currentTime = 0
+            }
+        }
+    }, [])
 
     // Toggle audio playback
     const toggleAudio = () => {
@@ -475,79 +281,75 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
             if (audioRef.current) {
                 audioRef.current.pause()
                 setIsPlaying(false)
-                wasPlayingRef.current = false
             }
         } else {
             playAudio()
         }
     }
 
-    // Add these new handlers for progress bar interaction
+    // Progress bar interaction - simplified with proper cleanup
+    const [isDragging, setIsDragging] = useState(false)
+
     const handleProgressBarInteraction = (event: React.MouseEvent | React.TouchEvent) => {
-        if (!audioRef.current) return;
+        if (!audioRef.current) return
 
-        const progressBar = event.currentTarget;
-        const rect = progressBar.getBoundingClientRect();
+        const progressBar = event.currentTarget
+        const rect = progressBar.getBoundingClientRect()
 
-        // Get X position from either mouse or touch event
         const clientX = 'touches' in event
             ? event.touches[0].clientX
-            : event.clientX;
+            : event.clientX
 
-        const position = (clientX - rect.left) / rect.width;
-        const newTime = position * audioRef.current.duration;
+        const position = (clientX - rect.left) / rect.width
+        const newTime = position * audioRef.current.duration
 
-        // Update audio position
-        audioRef.current.currentTime = Math.max(0, Math.min(newTime, audioRef.current.duration));
-        setProgress(position * 100);
-    };
+        audioRef.current.currentTime = Math.max(0, Math.min(newTime, audioRef.current.duration))
+        setProgress(position * 100)
+    }
 
-    // Add these states for tracking touch/drag
-    const [isDragging, setIsDragging] = useState(false);
-
-    // Add useEffect for handling document-wide mouse/touch events
+    // Progress bar dragging with proper cleanup
     useEffect(() => {
+        if (!isDragging) return
+
         const handleMove = (event: MouseEvent | TouchEvent) => {
-            if (!isDragging || !audioRef.current) return;
+            if (!audioRef.current) return
 
-            const progressBar = document.querySelector('.progress-bar');
-            if (!progressBar) return;
+            const progressBar = document.querySelector('.progress-bar')
+            if (!progressBar) return
 
-            const rect = progressBar.getBoundingClientRect();
+            const rect = progressBar.getBoundingClientRect()
             const clientX = 'touches' in event
                 ? event.touches[0].clientX
-                : event.clientX;
+                : event.clientX
 
-            const position = (clientX - rect.left) / rect.width;
-            const newTime = position * audioRef.current.duration;
+            const position = (clientX - rect.left) / rect.width
+            const newTime = position * audioRef.current.duration
 
-            audioRef.current.currentTime = Math.max(0, Math.min(newTime, audioRef.current.duration));
-            setProgress(Math.max(0, Math.min(position * 100, 100)));
-        };
-
-        const handleEnd = () => {
-            setIsDragging(false);
-        };
-
-        if (isDragging) {
-            document.addEventListener('mousemove', handleMove);
-            document.addEventListener('touchmove', handleMove);
-            document.addEventListener('mouseup', handleEnd);
-            document.addEventListener('touchend', handleEnd);
+            audioRef.current.currentTime = Math.max(0, Math.min(newTime, audioRef.current.duration))
+            setProgress(Math.max(0, Math.min(position * 100, 100)))
         }
 
+        const handleEnd = () => setIsDragging(false)
+
+        // Add event listeners
+        document.addEventListener('mousemove', handleMove, { passive: true })
+        document.addEventListener('touchmove', handleMove, { passive: true })
+        document.addEventListener('mouseup', handleEnd, { passive: true })
+        document.addEventListener('touchend', handleEnd, { passive: true })
+
+        // Cleanup function
         return () => {
-            document.removeEventListener('mousemove', handleMove);
-            document.removeEventListener('touchmove', handleMove);
-            document.removeEventListener('mouseup', handleEnd);
-            document.removeEventListener('touchend', handleEnd);
-        };
-    }, [isDragging]);
+            document.removeEventListener('mousemove', handleMove)
+            document.removeEventListener('touchmove', handleMove)
+            document.removeEventListener('mouseup', handleEnd)
+            document.removeEventListener('touchend', handleEnd)
+        }
+    }, [isDragging])
 
     return (
         <>
-            <nav className="fixed top-0 left-0 right-0 z-10">
-                <div className="max-w-full w-screen pt-2 pb-1 bg-zinc-100/80 dark:bg-zinc-900/80 backdrop-blur-lg backdrop-saturate-150 backdrop-brightness-75">
+            <nav className="fixed top-0 left-0 right-0 z-20">
+                <div className="max-w-full w-screen pt-2 pb-1 bg-background/10 backdrop-blur-lg backdrop-saturate-150 backdrop-brightness-75">
                     <div
                         ref={roomsContainerRef}
                         className="overflow-x-auto"
@@ -557,25 +359,31 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                         }}
                     >
                         <div className="flex flex-nowrap">
-                            {rooms.map(room => (
+                            {rooms.map((room, index) => (
                                 <Button
                                     key={room.roomTitle}
                                     data-room-active={room.id === currentRoomId}
                                     data-room-id={room.id}
                                     data-room-number={room.roomNumber}
-                                    className={cn("rounded-none whitespace-nowrap flex-none mr-1 first:ml-2 h-12",
-                                        room.id === currentRoomId ? "bg-secondary text-secondary-foreground hover:bg-secondary/90 hover:text-secondary-foreground active:bg-secondary/60 active:text-secondary-foreground" : "opacity-60 dark:opacity-60 hover:opacity-80")}
+                                    className={cn("rounded-none whitespace-nowrap flex-none mr-1 first:ml-2 h-12 backdrop-blur-lg backdrop-saturate-150 backdrop-brightness-75",
+                                        room.id === currentRoomId ? "bg-secondary text-secondary-foreground hover:bg-secondary/90 hover:text-secondary-foreground active:bg-secondary/60 active:text-secondary-foreground" : "bg-background/60 dark:bg-background/60 hover:bg-background/80")}
                                     asChild
                                 >
-                                    <a href={`/van-gogh/${locale}/${room.id}`}>
-                                        {room.paintings.length ? `${room.roomNumber}: ${room.roomTitle}` : getTranslation(locale, "end")}
+                                    <a 
+                                        href={`/van-gogh/${locale}/${room.id}`}
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            handleNavigation(`/van-gogh/${locale}/${room.id}`)
+                                        }}
+                                    >
+                                        {index === rooms.length - 1 ? getTranslation(locale, "end") : `${room.roomNumber}: ${room.roomTitle}`}
                                     </a>
                                 </Button>
                             ))}
                         </div>
                     </div>
                 </div>
-                <div className="max-w-full p-0 pb-2 bg-zinc-100/80 dark:bg-zinc-900/80 backdrop-blur-lg backdrop-saturate-150 backdrop-brightness-75">
+                <div className="max-w-full p-0 pb-2 bg-background/10 backdrop-blur-lg backdrop-saturate-150 backdrop-brightness-75">
                     <div
                         ref={paintingsContainerRef}
                         className="overflow-x-auto"
@@ -594,13 +402,19 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                                         data-painting-number={painting.paintingNumber}
                                         className={cn("rounded-none w-12 h-12 flex-none mr-1 first:ml-2",
                                             painting.id === currentPaintingId && "bg-secondary text-secondary-foreground hover:bg-secondary/90 hover:text-secondary-foreground active:bg-secondary/60 active:text-secondary-foreground",
-                                            room.id === currentRoomId ? "border-b-4 border-b-secondary" : "opacity-60 dark:opacity-60 hover:opacity-80")}
-                                        style={{
-                                            boxShadow: "hsl(var(--secondary)) 0px 10px 0px 0px"
-                                        }}
+                                            room.id === currentRoomId
+                                                ? "shadow-[inset_0_-4px_0_0_hsl(var(--secondary))]"
+                                                : "bg-background/60 dark:bg-background/60 hover:bg-background/80")}
+                                                
                                         asChild
                                     >
-                                        <a href={`/van-gogh/${currentLocale}/${room.id}/${painting.id}`}>
+                                        <a 
+                                            href={`/van-gogh/${currentLocale}/${room.id}/${painting.id}`}
+                                            onClick={(e) => {
+                                                e.preventDefault()
+                                                handleNavigation(`/van-gogh/${currentLocale}/${room.id}/${painting.id}`)
+                                            }}
+                                        >
                                             {painting.paintingNumber}
                                         </a>
                                     </Button>
@@ -657,28 +471,17 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                     </BottomNaButton>
                 </div>
 
-
-
                 <div
                     className="w-full h-4 bg-gray-200 dark:bg-gray-700 cursor-pointer progress-bar touch-none"
                     onClick={handleProgressBarInteraction}
                     onTouchStart={(e) => {
-                        setIsDragging(true);
-                        handleProgressBarInteraction(e);
+                        setIsDragging(true)
+                        handleProgressBarInteraction(e)
                     }}
                     onMouseDown={(e) => {
-                        setIsDragging(true);
-                        handleProgressBarInteraction(e);
+                        setIsDragging(true)
+                        handleProgressBarInteraction(e)
                     }}
-                    onTouchMove={handleProgressBarInteraction}
-                    onMouseMove={(e) => {
-                        if (isDragging) {
-                            handleProgressBarInteraction(e);
-                        }
-                    }}
-                    onTouchEnd={() => setIsDragging(false)}
-                    onMouseUp={() => setIsDragging(false)}
-                    onMouseLeave={() => setIsDragging(false)}
                 >
                     <div
                         className="h-full bg-blue-500 transition-all duration-100 ease-in-out"
@@ -686,35 +489,20 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                     />
                 </div>
             </div>
-            {/* Always render audio element, but only set src when we have a valid source */}
+
+            {/* Simplified audio element with proper error handling */}
             <audio
                 ref={audioRef}
                 src={audioSrc || undefined}
                 preload="auto"
                 style={{ display: 'none' }}
                 onError={(e) => {
-                    const error = e.currentTarget as HTMLAudioElement;
-                    console.warn(`Audio Error: ${error.error?.message || 'Unknown error'}`);
-                    console.warn(`Audio source that failed: ${error.currentSrc}`);
-                    console.warn(`Audio readyState: ${error.readyState}`);
-                    console.warn(`Audio element:`, error);
-                    console.warn(`Audio src attribute: ${error.src}`);
-                    setIsPlaying(false);
-                    wasPlayingRef.current = false;
+                    console.warn('Audio Error:', e.currentTarget.error?.message)
+                    setIsPlaying(false)
                 }}
-                onLoadStart={() => {
-                    if (audioSrc) {
-                        console.log('Audio loading started:', audioSrc);
-                    }
-                }}
-                onCanPlay={() => {
-                    if (audioSrc) {
-                        console.log('Audio can play:', audioSrc);
-                    }
-                }}
-                onCanPlayThrough={() => {
-                    if (audioSrc) {
-                        console.log('Audio can play through:', audioSrc);
+                onLoadedData={() => {
+                    if (audioRef.current) {
+                        audioRef.current.playbackRate = DEFAULT_PLAYBACK_SPEED
                     }
                 }}
                 onTimeUpdate={() => {
@@ -724,7 +512,6 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                 }}
                 onEnded={() => {
                     setIsPlaying(false)
-                    wasPlayingRef.current = false
                     setProgress(0)
                 }}
             />
@@ -733,12 +520,23 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
 }
 
 const BottomNaButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
-    function BottomNaButton({ className, variant, size, asChild = false, ...props }, ref) {
+    function BottomNaButton({ className, variant, size, asChild = false, disabled, ...props }, ref) {
         return (
             <Button
-                className={cn(buttonVariants({ variant, size, className }), "h-12 flex-1 flex items-center justify-center ring-1 ring-foreground/5 bg-primary text-primary-foreground hover:bg-primary/90", className)}
+                className={cn(
+                    buttonVariants({ variant, size, className }), 
+                    "h-12 flex-1 flex items-center justify-center ring-1 ring-foreground/5 backdrop-blur-sm backdrop-saturate-150 backdrop-brightness-75",
+                    disabled 
+                        ? "bg-background/20 text-foreground/30 hover:bg-background/20 cursor-not-allowed" 
+                        : "bg-background text-foreground hover:bg-background/80",
+                    className
+                )}
                 ref={ref}
+                disabled={disabled}
                 {...props}
+                style={{
+                    opacity: 1, // hard overwrite shadcn button 0.5 opacity for disabled state, but keep it passed for a11y
+                }}
                 asChild={asChild}
             />
         )

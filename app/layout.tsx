@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
-import { ModeToggle } from '@/components/mode-toggle'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -29,14 +28,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="min-h-screen bg-background text-foreground">
-            <header className="container mx-auto p-4">
-              <ModeToggle />
-            </header>
-            <main className="container mx-auto p-4">
-              {children}
-            </main>
-          </div>
+          {children}
         </ThemeProvider>
       </body>
     </html>

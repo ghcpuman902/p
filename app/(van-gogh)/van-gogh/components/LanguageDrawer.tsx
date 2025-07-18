@@ -39,6 +39,12 @@ export function LanguageDrawer({ currentLocale }: LanguageDrawerProps) {
     }
 
     const handlePurgeCache = async () => {
+        // Only allow cache purging in development
+        if (process.env.NODE_ENV !== 'development') {
+            console.warn('Cache purging is only available in development mode');
+            return;
+        }
+
         setStatus({ message: 'Purging cache...', type: 'info' });
         
         if (!isServiceWorkerSupported()) {
@@ -103,33 +109,37 @@ export function LanguageDrawer({ currentLocale }: LanguageDrawerProps) {
                 </div>
 
                 <div className="space-y-2">
-                    <Button
-                        variant="destructive"
-                        size="sm"
-                        className="w-full rounded-full"
-                        onClick={handlePurgeCache}
-                    >
-                        {getTranslation(currentLocale, "purgeCache")}
-                    </Button>
+                    {process.env.NODE_ENV === 'development' && (
+                        <>
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                className="w-full rounded-full"
+                                onClick={handlePurgeCache}
+                            >
+                                {getTranslation(currentLocale, "purgeCache")}
+                            </Button>
 
-                    {status && (
-                        <p className={cn(
-                            "text-center text-sm",
-                            status.type === 'error' && "text-red-500",
-                            status.type === 'success' && "text-green-500",
-                            status.type === 'info' && "text-blue-500"
-                        )}>
-                            {status.message}
-                        </p>
+                            {status && (
+                                <p className={cn(
+                                    "text-center text-sm",
+                                    status.type === 'error' && "text-red-500",
+                                    status.type === 'success' && "text-green-500",
+                                    status.type === 'info' && "text-blue-500"
+                                )}>
+                                    {status.message}
+                                </p>
+                            )}
+
+                            <div className="text-center text-xs text-gray-500">
+                                Service Worker Status: {
+                                    typeof window !== 'undefined' && navigator?.serviceWorker?.controller 
+                                        ? 'Active' 
+                                        : 'Not Active'
+                                }
+                            </div>
+                        </>
                     )}
-
-                    <div className="text-center text-xs text-gray-500">
-                        Service Worker Status: {
-                            typeof window !== 'undefined' && navigator?.serviceWorker?.controller 
-                                ? 'Active' 
-                                : 'Not Active'
-                        }
-                    </div>
                 </div>
             </div>
         </SharedDrawer>
