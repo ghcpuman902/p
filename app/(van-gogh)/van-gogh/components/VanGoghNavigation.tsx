@@ -22,6 +22,36 @@ interface VanGoghNavigationProps {
 // Add this constant near the top of the file
 const DEFAULT_PLAYBACK_SPEED = 1.1
 
+// Add this interface for raw room data from service worker
+interface RawRoom {
+    roomTitle: string;
+    roomNumber: number;
+    roomIntroduction: string;
+    roomImage: {
+        url: string;
+        description: string;
+    };
+    paintings: Array<{
+        paintingNumber: string;
+        paintingTitle: string;
+        paintingTime: string;
+        media: string;
+        origin: string;
+        exhibitionText: string;
+        image: {
+            url: string;
+            description: string;
+        } | null;
+    }>;
+}
+
+interface ServiceWorkerResponse {
+    success: boolean;
+    roomData?: {
+        rooms: RawRoom[];
+    };
+}
+
 export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationProps) {
     const pathname = usePathname()
     const segments = useSelectedLayoutSegments()
@@ -43,14 +73,14 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
     } | null>(null)
 
     // Function to process raw room data the same way getRooms.ts does
-    const processRoomData = useCallback((rawRooms: any[]): Room[] => {
-        return rawRooms.map((room: any, index: number) => {
+    const processRoomData = useCallback((rawRooms: RawRoom[]): Room[] => {
+        return rawRooms.map((room: RawRoom, index: number) => {
             const roomNumber = index + 1
             return {
                 ...room,
                 id: `room-${roomNumber}`,
                 roomNumber: roomNumber,
-                paintings: room.paintings.map((painting: any) => ({
+                paintings: room.paintings.map((painting) => ({
                     ...painting,
                     type: 'painting' as const,
                     id: `painting-${roomNumber}-${painting.paintingNumber}`,
@@ -110,7 +140,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
             
             const messageChannel = new MessageChannel();
             
-            const response = await new Promise<any>((resolve, reject) => {
+            const response = await new Promise<ServiceWorkerResponse>((resolve, reject) => {
                 const timeout = setTimeout(() => {
                     console.warn(`🔍 SW-DATA: Service worker response timeout for ${targetLocale}`);
                     reject(new Error('Service Worker response timeout'));
@@ -314,12 +344,12 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                 
                 const results = await Promise.all(roomDataPromises);
                 const roomDataMap = Object.fromEntries(
-                    results.filter(([_, roomData]) => roomData !== null)
-                );
+                    results.filter(([, roomData]) => roomData !== null)
+                ) as { [K in Locale]: Room[] };
                 
                 if (Object.keys(roomDataMap).length > 0) {
                     console.log(`🔍 SW-DATA: Processed and stored room data for locales:`, Object.keys(roomDataMap));
-                    setServiceWorkerRoomData(roomDataMap as any);
+                    setServiceWorkerRoomData(roomDataMap);
                 } else {
                     console.warn(`🔍 SW-DATA: No room data available from service worker`);
                 }
@@ -549,8 +579,8 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
             const handleCanPlay = () => {
                 console.log(`🎵 AUDIO-DEBUG: Audio can play ${audioPath}`);
             };
-            const handleError = (e: any) => {
-                console.log(`🎵 AUDIO-DEBUG: Audio error loading ${audioPath}:`, e.target?.error);
+            const handleError = (e: Event) => {
+                console.log(`🎵 AUDIO-DEBUG: Audio error loading ${audioPath}:`, (e.target as HTMLAudioElement)?.error);
             };
             const handleLoadedData = () => {
                 console.log(`🎵 AUDIO-DEBUG: Audio data loaded for ${audioPath}, duration: ${audio.duration}s`);
