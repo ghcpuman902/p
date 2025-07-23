@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Flag } from 'lucide-react'
 import { SharedDrawer } from './SharedDrawer'
-import { Button } from "@/components/ui/button"
 import { SUPPORTED_LOCALES, Locale, getTranslation } from '../libs/localization'
 import { cn } from '@/lib/utils'
 
@@ -26,16 +25,6 @@ export function LanguageDrawer({ currentLocale }: LanguageDrawerProps) {
     const isServiceWorkerSupported = () => {
         if (typeof window === 'undefined') return false;
         return 'serviceWorker' in navigator;
-    }
-
-    const handleLanguageChange = (locale: Locale) => {
-        // Use hard navigation to trigger automatic service worker caching
-        const newPath = window.location.pathname.replace(
-            /\/van-gogh\/[^/]+/,
-            `/van-gogh/${locale}`
-        )
-        // Use window.location.href for hard navigation to ensure service worker intercepts
-        window.location.href = newPath
     }
 
     const handlePurgeCache = async () => {
@@ -96,29 +85,36 @@ export function LanguageDrawer({ currentLocale }: LanguageDrawerProps) {
         >
             <div className="p-4 space-y-6">
                 <div className="grid grid-cols-1 gap-4">
-                    {SUPPORTED_LOCALES.map((locale) => (
-                        <Button
-                            key={locale}
-                            variant={locale === currentLocale ? "secondary" : "outline"}
-                            className="w-full rounded-full"
-                            onClick={() => handleLanguageChange(locale)}
-                        >
-                            {getTranslation(locale, "languageName")}
-                        </Button>
-                    ))}
+                    {SUPPORTED_LOCALES.map((locale) => {
+                        const newPath = `/van-gogh/${locale}/room-1`
+                        
+                        return (
+                            <a
+                                key={locale}
+                                href={newPath}
+                                className={cn(
+                                    "w-full rounded-full px-4 py-2 text-center text-sm font-medium transition-colors",
+                                    locale === currentLocale 
+                                        ? "bg-secondary text-secondary-foreground hover:bg-secondary/90" 
+                                        : "bg-background border border-input hover:bg-accent hover:text-accent-foreground"
+                                )}
+                            >
+                                {getTranslation(locale, "languageName")}
+                            </a>
+                        )
+                    })}
                 </div>
 
                 <div className="space-y-2">
                     {process.env.NODE_ENV === 'development' && (
                         <>
-                            <Button
-                                variant="destructive"
-                                size="sm"
-                                className="w-full rounded-full"
+                            <button
+                                type="button"
+                                className="w-full rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 px-4 py-2 text-sm font-medium transition-colors"
                                 onClick={handlePurgeCache}
                             >
                                 {getTranslation(currentLocale, "purgeCache")}
-                            </Button>
+                            </button>
 
                             {status && (
                                 <p className={cn(

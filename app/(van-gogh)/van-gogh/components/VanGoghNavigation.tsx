@@ -105,6 +105,21 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
 
     const locale = getLocaleFromSegments(segments)
     
+    // Add state to track the effective locale to prevent hydration mismatches
+    // Use a function to ensure consistent initial state between server and client
+    const [effectiveLocale, setEffectiveLocale] = useState<Locale>(() => {
+        // During SSR, use the locale from segments
+        // During client hydration, this will be the same value
+        return locale
+    })
+    
+    // Update effective locale when locale changes (only on client)
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setEffectiveLocale(locale)
+        }
+    }, [locale])
+    
     // Memoize room options to prevent infinite re-renders
     const availableRoomOptions = useMemo(() => {
         const result = isOffline && serviceWorkerRoomData ? serviceWorkerRoomData : roomOptions
@@ -115,7 +130,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
         return result
     }, [isOffline, serviceWorkerRoomData, roomOptions])
     
-    const rooms = availableRoomOptions[locale]
+    const rooms = availableRoomOptions[effectiveLocale]
 
     // Service worker room data fetching for offline mode
     const fetchRoomDataFromServiceWorker = useCallback(async (targetLocale: Locale) => {
@@ -234,7 +249,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
             console.log(`🔍 OFFLINE-DEBUG: Locale "${currentLocale}" not supported, adjusting...`);
             currentPaintingId = currentRoomId
             currentRoomId = currentLocale
-            currentLocale = locale // Use the locale from segments
+            currentLocale = effectiveLocale // Use the effective locale
         }
 
         console.log(`🔍 OFFLINE-DEBUG: Parsed - locale: "${currentLocale}", roomId: "${currentRoomId}", paintingId: "${currentPaintingId}"`);
@@ -323,7 +338,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
         });
         
         return result;
-    }, [availableRoomOptions, locale])
+    }, [availableRoomOptions, effectiveLocale])
 
     // Effect to fetch service worker room data when going offline
     useEffect(() => {
@@ -429,7 +444,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
     if (!SUPPORTED_LOCALES.includes(currentLocale as Locale)) {
         currentPaintingId = currentRoomId
         currentRoomId = currentLocale
-        currentLocale = locale
+        currentLocale = effectiveLocale
     }
 
     // Only attempt to process valid room/painting IDs
@@ -507,14 +522,14 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
             const currentPaintingIndex = currentRoom.paintings.findIndex(painting => painting.id === currentPaintingId);
             if (currentPaintingIndex > 0) {
                 const previousPainting = currentRoom.paintings[currentPaintingIndex - 1];
-                return `/van-gogh/${currentLocale}/${currentRoomId}/${previousPainting.id}`;
+                return `/van-gogh/${effectiveLocale}/${currentRoomId}/${previousPainting.id}`;
             } else {
-                return `/van-gogh/${currentLocale}/${currentRoomId}`;
+                return `/van-gogh/${effectiveLocale}/${currentRoomId}`;
             }
         } else if (currentRoomIndex > 0) {
             const previousRoom = rooms[currentRoomIndex - 1];
             const lastPainting = previousRoom.paintings[previousRoom.paintings.length - 1];
-            return `/van-gogh/${currentLocale}/${previousRoom.id}/${lastPainting.id}`;
+            return `/van-gogh/${effectiveLocale}/${previousRoom.id}/${lastPainting.id}`;
         }
         return null;
     }
@@ -533,17 +548,17 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
 
         if (currentPaintingIndex < currentRoom.paintings.length - 1) {
             const nextPainting = currentRoom.paintings[currentPaintingIndex + 1];
-            return `/van-gogh/${currentLocale}/${currentRoomId}/${nextPainting.id}`;
+            return `/van-gogh/${effectiveLocale}/${currentRoomId}/${nextPainting.id}`;
         } else if (currentRoomIndex < rooms.length - 1) {
             const nextRoom = rooms[currentRoomIndex + 1];
-            return `/van-gogh/${currentLocale}/${nextRoom.id}`;
+            return `/van-gogh/${effectiveLocale}/${nextRoom.id}`;
         }
         return null;
     }
 
     // Simplified audio source setting - let service worker handle caching
     const setAudioSource = useCallback(() => {
-        console.log(`🎵 AUDIO-DEBUG: setAudioSource called - isOffline: ${isOffline}, currentRoomId: "${currentRoomId}", currentPaintingId: "${currentPaintingId}", currentLocale: "${currentLocale}"`);
+        console.log(`🎵 AUDIO-DEBUG: setAudioSource called - isOffline: ${isOffline}, currentRoomId: "${currentRoomId}", currentPaintingId: "${currentPaintingId}", effectiveLocale: "${effectiveLocale}"`);
         
         // Cancel any ongoing operations
         if (abortControllerRef.current) {
@@ -561,8 +576,8 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
 
         // Set audio source - let service worker handle availability
         const audioPath = currentPaintingId
-            ? `/van-gogh-assets/${currentLocale}.${currentPaintingId}.aac`
-            : `/van-gogh-assets/${currentLocale}.${currentRoomId}.aac`
+            ? `/van-gogh-assets/${effectiveLocale}.${currentPaintingId}.aac`
+            : `/van-gogh-assets/${effectiveLocale}.${currentRoomId}.aac`
 
         console.log(`🎵 AUDIO-DEBUG: Setting audio source: "${audioPath}" (${isOffline ? 'OFFLINE' : 'ONLINE'} mode)`);
         setAudioSrc(audioPath)
@@ -621,7 +636,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
     }, [audioSrc, isOffline])
 
     // Enhanced navigation handler with offline support
-    const handleNavigation = (url: string | null) => {
+    const handleNavigation = async (url: string | null) => {
         if (!url) return
 
         // Pause audio before navigation
@@ -630,6 +645,32 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
             audioRef.current.currentTime = 0
         }
         setIsPlaying(false)
+
+        // Check if this is a locale change
+        const urlSegments = url.split('/')
+        const newLocale = urlSegments[2] as Locale
+        const isLocaleChange = newLocale && newLocale !== effectiveLocale && SUPPORTED_LOCALES.includes(newLocale)
+
+        if (isLocaleChange) {
+            console.log(`🌍 Locale change detected: ${effectiveLocale} → ${newLocale}`)
+            
+            // Notify service worker about locale change before navigation
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                console.log(`📡 Notifying service worker about locale change to ${newLocale}`)
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'UPDATE_POSITION',
+                    position: {
+                        roomId: urlSegments[3] || null,
+                        paintingId: urlSegments[4] || null
+                    },
+                    locale: newLocale,
+                    isLocaleChange: true
+                })
+            }
+            
+            // Small delay to ensure service worker processes the message
+            await new Promise(resolve => setTimeout(resolve, 100))
+        }
 
         if (isOffline) {
             // Client-side navigation when offline
@@ -661,7 +702,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                     roomId: currentRoomId,
                     paintingId: currentPaintingId
                 },
-                locale: currentLocale
+                locale: effectiveLocale
             })
         }
 
@@ -671,7 +712,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                 abortControllerRef.current.abort()
             }
         }
-    }, [effectivePathname, setAudioSource, currentRoomId, currentPaintingId, currentLocale])
+    }, [effectivePathname, setAudioSource, currentRoomId, currentPaintingId, effectiveLocale])
 
     // Cleanup on unmount
     useEffect(() => {
@@ -784,13 +825,13 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                                     asChild
                                 >
                                     <a 
-                                        href={`/van-gogh/${locale}/${room.id}`}
+                                        href={`/van-gogh/${effectiveLocale}/${room.id}`}
                                         onClick={(e) => {
                                             e.preventDefault()
-                                            handleNavigation(`/van-gogh/${locale}/${room.id}`)
+                                            handleNavigation(`/van-gogh/${effectiveLocale}/${room.id}`)
                                         }}
                                     >
-                                        {index === rooms.length - 1 ? getTranslation(locale, "end") : `${room.roomNumber}: ${room.roomTitle}`}
+                                        {index === rooms.length - 1 ? getTranslation(effectiveLocale, "end") : `${room.roomNumber}: ${room.roomTitle}`}
                                     </a>
                                 </Button>
                             ))}
@@ -823,10 +864,10 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                                         asChild
                                     >
                                         <a 
-                                            href={`/van-gogh/${currentLocale}/${room.id}/${painting.id}`}
+                                            href={`/van-gogh/${effectiveLocale}/${room.id}/${painting.id}`}
                                             onClick={(e) => {
                                                 e.preventDefault()
-                                                handleNavigation(`/van-gogh/${currentLocale}/${room.id}/${painting.id}`)
+                                                handleNavigation(`/van-gogh/${effectiveLocale}/${room.id}/${painting.id}`)
                                             }}
                                         >
                                             {painting.paintingNumber}
@@ -844,19 +885,19 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                     </div>
                 </div>
                 <div className="flex gap-2 bg-transparent justify-end p-2">
-                    <ChronologyDrawer currentLocale={currentLocale} />
-                    <ExhibitionMapDrawer currentLocale={currentLocale} />
-                    <LanguageDrawer currentLocale={currentLocale}/>
+                    <ChronologyDrawer currentLocale={effectiveLocale} />
+                    <ExhibitionMapDrawer currentLocale={effectiveLocale} />
+                    <LanguageDrawer currentLocale={effectiveLocale}/>
                 </div>
             </nav>
 
             <main>
                 {isOffline && offlineContent?.currentRoom ? (
                     <PaintingDetails
-                        key={`offline-${offlineContent.locale}-${offlineContent.currentRoom.id}-${offlineContent.currentPainting?.id || 'room'}`}
+                        key={`offline-${effectiveLocale}-${offlineContent.currentRoom.id}-${offlineContent.currentPainting?.id || 'room'}`}
                         currentRoom={offlineContent.currentRoom}
                         currentPainting={offlineContent.currentPainting}
-                        locale={offlineContent.locale}
+                        locale={effectiveLocale}
                     />
                 ) : (
                     children
@@ -877,7 +918,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                         onClick={toggleAudio}
                         disabled={!currentRoomId}
                     >
-                        <span className="ml-1">{getTranslation(locale, "playAudio")}</span>
+                        <span className="ml-1">{getTranslation(effectiveLocale, "playAudio")}</span>
                         {isPlaying ? (
                             <Pause className="h-6 w-6" />
                         ) : (
@@ -889,7 +930,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
                         onClick={() => handleNavigation(getNextUrl())}
                         disabled={!getNextUrl()}
                     >
-                        <span className="mr-2">{getTranslation(locale, "next")}</span>
+                        <span className="mr-2">{getTranslation(effectiveLocale, "next")}</span>
                         <ChevronRight className="h-6 w-6" />
                     </BottomNaButton>
                 </div>

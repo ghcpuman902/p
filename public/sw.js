@@ -741,17 +741,34 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Handle ALL van-gogh navigation (online/offline) - Cache-first for SPA-like experience
+// Handle ALL van-gogh navigation (online/offline) - Network-first for locale changes, cache-first for room changes
 async function handleVanGoghNavigation(request) {
   const url = new URL(request.url);
   const isOffline = !navigator.onLine;
   
   log.nav(`Intercepting van-gogh navigation for: ${url.pathname} (${isOffline ? 'offline' : 'online'})`);
   
+  // Handle specific redirect cases
+  if (url.pathname === '/van-gogh') {
+    log.nav(`Redirecting /van-gogh to /van-gogh/en-GB/room-1`);
+    return Response.redirect('/van-gogh/en-GB/room-1', 302);
+  }
+  
+  if (url.pathname === '/van-gogh/en-GB/' || url.pathname === '/van-gogh/en-GB') {
+    log.nav(`Redirecting /van-gogh/en-GB to /van-gogh/en-GB/room-1`);
+    return Response.redirect('/van-gogh/en-GB/room-1', 302);
+  }
+  
+  if (url.pathname === '/van-gogh/zh-TW') {
+    log.nav(`Redirecting /van-gogh/zh-TW to /van-gogh/zh-TW/room-1`);
+    return Response.redirect('/van-gogh/zh-TW/room-1', 302);
+  }
+  
   // Extract locale and position from URL path
   const pathParts = url.pathname.split('/');
   let newLocale = currentLocale;
   let newPosition = currentPosition;
+  let isLocaleChange = false;
   
   if (pathParts.length >= 3) {
     newLocale = pathParts[2];
@@ -782,13 +799,18 @@ async function handleVanGoghNavigation(request) {
   // Check for locale changes
   if (SUPPORTED_LOCALES.includes(newLocale) && newLocale !== currentLocale) {
     log.nav(`Locale change detected: ${currentLocale} → ${newLocale}`);
+    log.nav(`URL path: ${url.pathname}, isOffline: ${isOffline}`);
     currentLocale = newLocale;
+    isLocaleChange = true;
     
     // Trigger caching for the new locale - only if room data is initialized
     if (!isOffline && roomDataInitialized) {
+      log.nav(`Triggering asset caching for new locale: ${newLocale}`);
       cacheAssets(newLocale).catch(error => {
         log.warn('Locale caching failed for new locale:', error);
       });
+    } else {
+      log.nav(`Skipping asset caching for locale ${newLocale} - offline: ${isOffline}, roomDataInitialized: ${roomDataInitialized}`);
     }
   }
   
@@ -814,7 +836,35 @@ async function handleVanGoghNavigation(request) {
   
   const cache = await caches.open(CACHE_NAME);
   
-  // ALWAYS try cache first for instant SPA-like navigation (exact match only)
+  // SPECIAL HANDLING FOR LOCALE CHANGES: Network-first when online
+  if (isLocaleChange && !isOffline) {
+    log.nav(`Locale change detected - using network-first strategy for: ${url.pathname}`);
+    try {
+      log.nav(`Fetching new locale from network: ${url.pathname}`);
+      
+      // Add a small timeout to ensure network request completes
+      const networkResponse = await Promise.race([
+        fetch(request),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Network timeout')), 5000)
+        )
+      ]);
+      
+      if (networkResponse.ok) {
+        log.nav(`Serving fresh locale page from network: ${url.pathname}`);
+        return networkResponse;
+      } else {
+        log.warn(`Network response not ok for locale change ${url.pathname}: ${networkResponse.status}`);
+      }
+    } catch (error) {
+      log.warn(`Network fetch failed for locale change ${url.pathname}:`, error);
+    }
+    
+    // If network fails for locale change, fall through to cache/fallback logic
+    log.nav(`Network failed for locale change, trying cache/fallback for: ${url.pathname}`);
+  }
+  
+  // For non-locale changes or offline: Cache-first strategy
   let cachedResponse = await cache.match(request);
   if (cachedResponse) {
     log.nav(`Serving cached page: ${url.pathname}`);
@@ -827,8 +877,8 @@ async function handleVanGoghNavigation(request) {
   const cachedPages = allCachedRequests.filter(req => req.url.includes('/van-gogh/'));
   log.nav(`Cached pages:`, cachedPages.map(req => req.url.split('/').slice(-2).join('/')));
   
-  // If online, fetch from network (React handles UI, no need to cache pages)
-  if (!isOffline) {
+  // If online and not a locale change, fetch from network
+  if (!isOffline && !isLocaleChange) {
     try {
       log.nav(`Fetching from network: ${url.pathname}`);
       const networkResponse = await fetch(request);
@@ -901,7 +951,7 @@ async function handleVanGoghNavigation(request) {
           <p>${isOffline ? 'You\'re currently offline. Some pages may not be available.' : 'This page couldn\'t be loaded. Please try again.'}</p>
           <button onclick="window.location.reload()">Retry</button>
           <br><br>
-          <a href="/van-gogh/en-GB" style="color: #007AFF; text-decoration: none;">← Return to Van Gogh Guide</a>
+          <a href="/van-gogh/en-GB/room-1" style="color: #007AFF; text-decoration: none;">← Return to Van Gogh Guide</a>
         </div>
       </body>
     </html>
@@ -1445,15 +1495,32 @@ self.addEventListener('message', async (event) => {
       case 'UPDATE_POSITION':
         // Update current position and trigger asset caching
         currentPosition = data.position;
+        const previousLocale = currentLocale;
         currentLocale = data.locale || currentLocale;
-        log.nav('Position updated:', currentPosition, 'Locale:', currentLocale);
         
-        // Trigger asset caching for current locale
-        await cacheAssets(currentLocale);
+        const isLocaleChange = data.isLocaleChange || (previousLocale !== currentLocale);
+        
+        if (isLocaleChange) {
+          log.nav(`Locale change via message: ${previousLocale} → ${currentLocale}`);
+          log.nav('Position updated:', currentPosition, 'Locale:', currentLocale);
+          
+          // Trigger asset caching for new locale immediately
+          if (roomDataInitialized) {
+            log.init(`Triggering immediate asset caching for new locale: ${currentLocale}`);
+            cacheAssets(currentLocale).catch(error => {
+              log.warn('Asset caching failed for new locale:', error);
+            });
+          }
+        } else {
+          log.nav('Position updated:', currentPosition, 'Locale:', currentLocale);
+          
+          // Trigger asset caching for current locale
+          await cacheAssets(currentLocale);
+        }
         
         sendMessageResponse(event, {
           success: true,
-          message: `Asset caching triggered for ${currentLocale}`
+          message: `Asset caching triggered for ${currentLocale}${isLocaleChange ? ' (locale change)' : ''}`
         });
         break;
 

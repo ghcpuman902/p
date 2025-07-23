@@ -14,6 +14,9 @@ export async function generateStaticParams(): Promise<{ slug: string[] }[]> {
   // Add offline route
   allParams.push({ slug: ['offline'] })
 
+  // DO NOT add root path (empty slug) - let service worker handle redirect
+  // DO NOT add locale-only paths - let service worker handle redirect
+
   for (const locale of SUPPORTED_LOCALES) {
     const rooms = await getRooms(locale as Locale)
     const localeParams = [
@@ -89,25 +92,17 @@ export default async function Page({
 
   // Handle different URL patterns using cleanSlug instead of slug
   if (cleanSlug.length === 0) {
-    // Root path: redirect to first room with default locale
-    const rooms = await getRooms(DEFAULT_LOCALE)
-    if (rooms.length > 0) {
-      redirect(`/van-gogh/${DEFAULT_LOCALE}/${rooms[0].id}`)
-    }
-    return notFound()
+    // Root path: should be redirected by service worker, but if we get here, redirect
+    redirect('/van-gogh/en-GB/room-1')
   } else if (cleanSlug.length === 1) {
     // Single segment: either locale or roomId
     if (SUPPORTED_LOCALES.includes(cleanSlug[0] as Locale)) {
-      locale = cleanSlug[0] as Locale
-      const rooms = await getRooms(locale)
-      if (rooms.length > 0) {
-        redirect(`/van-gogh/${locale}/${rooms[0].id}`)
-      }
-      return notFound()
+      // Locale-only path: should be redirected by service worker, but if we get here, redirect
+      redirect(`/van-gogh/${cleanSlug[0]}/room-1`)
     } else {
-      // No locale prefix - redirect to default locale
+      // No locale prefix - use default locale
       roomId = cleanSlug[0]
-      redirect(`/van-gogh/${DEFAULT_LOCALE}/${roomId}`)
+      locale = DEFAULT_LOCALE
     }
   } else if (cleanSlug.length === 2) {
     if (SUPPORTED_LOCALES.includes(cleanSlug[0] as Locale)) {
