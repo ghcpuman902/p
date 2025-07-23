@@ -2,12 +2,17 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
-import { getRooms } from './van-gogh/libs/getRooms'
+import { getLocaleAssets } from './van-gogh/libs/getRooms'
 import { VanGoghNavigation } from './van-gogh/components/VanGoghNavigation'
 import { SUPPORTED_LOCALES, type Locale } from '@/app/(van-gogh)/van-gogh/libs/localization'
 import Script from 'next/script'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',
+  preload: false,
+  fallback: ['system-ui', 'arial']
+})
 
 const APP_NAME = "Van Gogh Digital Guide";
 const APP_DEFAULT_TITLE = "Van Gogh Digital Guide";
@@ -81,36 +86,97 @@ export default async function VanGoghLayout({
 }: {
   children: React.ReactNode
 }) {
-  const roomsByLocale = await Promise.all(
-    SUPPORTED_LOCALES.map(locale => getRooms(locale))
+  const localeAssets = await Promise.all(
+    SUPPORTED_LOCALES.map(locale => getLocaleAssets(locale))
   );
 
   const roomOptions = Object.fromEntries(
-    SUPPORTED_LOCALES.map((locale, index) => [locale, roomsByLocale[index]])
-  ) as Record<Locale, Awaited<ReturnType<typeof getRooms>>>;
-
+    SUPPORTED_LOCALES.map((locale, index) => [locale, localeAssets[index].rooms])
+  ) as Record<Locale, Awaited<ReturnType<typeof getLocaleAssets>>['rooms']>;
+  
   return (
     <html suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={inter.className} suppressHydrationWarning>
         <Script id="register-sw" strategy="afterInteractive">
           {`
+            // Service worker registration - now independent of layout data
+            console.log('🔧 SW-REG: Starting independent service worker registration...');
+            
+            // Add global debug function for manual testing
+            window.debugSW = function() {
+              console.log('🔧 DEBUG: Manual SW registration test');
+              console.log('Service Worker support:', 'serviceWorker' in navigator);
+              console.log('Navigator online:', navigator.onLine);
+              console.log('Current controller:', navigator.serviceWorker?.controller);
+              
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                  console.log('Existing registrations:', registrations.length);
+                  registrations.forEach((reg, i) => {
+                    console.log('Registration', i, ':', {
+                      scope: reg.scope,
+                      active: !!reg.active,
+                      installing: !!reg.installing,
+                      waiting: !!reg.waiting
+                    });
+                  });
+                });
+                
+                fetch('/sw.js').then(r => {
+                  console.log('SW file fetch status:', r.status, r.statusText);
+                }).catch(e => {
+                  console.error('SW file fetch error:', e);
+                });
+              }
+            };
+            
             if ('serviceWorker' in navigator) {
-              window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js')
+              console.log('✅ SW-REG: Service Worker supported');
+              
+              // Track if registration has been attempted
+              let registrationAttempted = false;
+              
+              // Function to register service worker
+              function registerServiceWorker() {
+                if (registrationAttempted) {
+                  console.log('🔧 SW-REG: Registration already attempted, skipping...');
+                  return;
+                }
+                
+                registrationAttempted = true;
+                console.log('🔧 SW-REG: Starting service worker registration...');
+                
+                try {
+                  navigator.serviceWorker.register('/sw.js')
                   .then(function(registration) {
-                    console.log('✅ SW: Data-first Service Worker registered successfully:', registration.scope);
+                      console.log('✅ SW: Independent Service Worker registered successfully:', registration.scope);
+                    console.log('🔧 SW-REG: Registration details:', {
+                      scope: registration.scope,
+                      active: !!registration.active,
+                      activeState: registration.active?.state,
+                      installing: !!registration.installing,
+                      installingState: registration.installing?.state,
+                      waiting: !!registration.waiting,
+                      waitingState: registration.waiting?.state,
+                      updateViaCache: registration.updateViaCache
+                    });
+                    
+                      console.log('📋 SW: Service worker will fetch room data independently from JSON endpoints');
                     
                     // Listen for service worker messages
                     navigator.serviceWorker.addEventListener('message', function(event) {
-                      console.log('📨 SW: Received message from service worker:', event.data);
-                      
-                      if (event.data.type === 'ASSET_CACHE_COMPLETE') {
+                      console.log('📨 SW: Received message from service worker:', event.data.type);
+                        if (event.data.type === 'SW_READY') {
+                          console.log('🎉 SW: Service worker is ready:', event.data.message);
+                          window.dispatchEvent(new CustomEvent('sw-ready', {
+                          detail: event.data
+                        }));
+                      } else if (event.data.type === 'ASSET_CACHE_COMPLETE') {
                         console.log('🎉 SW: Asset caching completed for', event.data.locale);
                         window.dispatchEvent(new CustomEvent('sw-asset-cache-complete', {
                           detail: event.data
                         }));
                       } else if (event.data.type === 'DOWNLOAD_PROGRESS') {
-                        // You can dispatch custom events here for UI updates
                         window.dispatchEvent(new CustomEvent('sw-download-progress', {
                           detail: event.data
                         }));
@@ -130,7 +196,22 @@ export default async function VanGoghLayout({
                   .catch(function(error) {
                     console.error('❌ SW: Service Worker registration failed:', error);
                   });
-              });
+                } catch (error) {
+                  console.error('❌ SW-REG: Critical error in registration process:', error);
+                }
+              }
+              
+              // Register service worker immediately
+              registerServiceWorker();
+              
+              // Also register on load event as backup
+              if (document.readyState !== 'complete') {
+                window.addEventListener('load', function() {
+                  if (!navigator.serviceWorker.controller) {
+                    registerServiceWorker();
+                  }
+                });
+              }
             } else {
               console.warn('⚠️ SW: Service Worker not supported in this browser');
             }

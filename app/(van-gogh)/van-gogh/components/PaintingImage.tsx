@@ -10,9 +10,10 @@ interface PaintingImageProps {
   description: string;
   locale: Locale;
   isPainting?: boolean;
+  priority?: boolean;
 }
 
-export function PaintingImage({ imageUrl, description, locale, isPainting = true }: PaintingImageProps) {
+export function PaintingImage({ imageUrl, description, locale, isPainting = true, priority = false }: PaintingImageProps) {
   const [imageLoadError, setImageLoadError] = useState<string>('');
   const [isOffline, setIsOffline] = useState(false);
   const [isCached, setIsCached] = useState(false);
@@ -28,7 +29,7 @@ export function PaintingImage({ imageUrl, description, locale, isPainting = true
       if (offline) {
         // Check if image is cached
         try {
-          const cache = await caches.open('van-gogh-assets-v4');
+          const cache = await caches.open('van-gogh-assets-v5');
           const cachedResponse = await cache.match(imageSrc);
           setIsCached(!!cachedResponse);
         } catch (error) {
@@ -78,6 +79,7 @@ export function PaintingImage({ imageUrl, description, locale, isPainting = true
           src={imageSrc}
           alt={description}
           quality={100}
+          priority={priority}
           width={1000}
           height={
             imageUrl === 'p21.png' ? 1242 :

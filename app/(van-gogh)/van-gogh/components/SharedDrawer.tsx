@@ -43,7 +43,7 @@ export function SharedDrawer({ title, pageTitle = title, icon: Icon, children, i
                 <DialogTrigger asChild>
                     <Button
                         className={cn(
-                            "ring-1 ring-foreground/5 bg-background/80 backdrop-blur-lg backdrop-saturate-150 backdrop-brightness-75 h-8 flex items-center justify-center gap-1",
+                            "ring-1 ring-foreground/5 dark:ring-foreground/30 bg-background/80 backdrop-blur-lg backdrop-saturate-150 backdrop-brightness-75 h-8 flex items-center justify-center gap-1",
                             title ? "rounded-full px-2" : "rounded-full p-0"
                         )}
                         size={title ? "default" : "icon"}
@@ -98,7 +98,7 @@ export function SharedDrawer({ title, pageTitle = title, icon: Icon, children, i
             <Drawer.Trigger asChild>
                 <Button
                     className={cn(
-                        "ring-1 ring-foreground/5 bg-background/80 backdrop-blur-lg backdrop-saturate-150 backdrop-brightness-75 h-8 flex items-center justify-center gap-1",
+                        "ring-1 ring-foreground/5 dark:ring-foreground/30 bg-background/80 backdrop-blur-lg backdrop-saturate-150 backdrop-brightness-75 h-8 flex items-center justify-center gap-1",
                         title ? "rounded-full px-2" : "rounded-full p-0"
                     )}
                     size={title ? "default" : "icon"}

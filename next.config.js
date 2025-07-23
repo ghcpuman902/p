@@ -14,6 +14,11 @@ module.exports = async (phase) => {
     },
     images: {
       minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
+      qualities: [25, 50, 75, 100],
+    },
+    // Optimize font loading to reduce preload warnings
+    experimental: {
+      optimizePackageImports: ['@next/font'],
     },
     // Enable service worker registration
     headers: async () => {
@@ -28,6 +33,16 @@ module.exports = async (phase) => {
             {
               key: 'Service-Worker-Allowed',
               value: '/',
+            },
+          ],
+        },
+        // Add font optimization headers
+        {
+          source: '/_next/static/media/:path*',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'public, max-age=31536000, immutable',
             },
           ],
         },

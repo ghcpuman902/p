@@ -96,6 +96,7 @@ function PaintingDetails({ currentRoom, currentPainting, locale }: PaintingDetai
             description={displayData.image.description}
             locale={locale}
             isPainting={!!currentPainting}
+            priority={!currentPainting} // Prioritize room images as they're likely above the fold
           />
         )}
 

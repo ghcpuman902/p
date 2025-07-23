@@ -42,21 +42,5 @@
         "type": "image/svg+xml",
         "purpose": "any"
       }
-    ],
-    "screenshots": [
-      {
-        "src": "/van-gogh-assets/screenshot-desktop.png",
-        "sizes": "1280x720",
-        "type": "image/png",
-        "form_factor": "wide",
-        "label": "Van Gogh Digital Guide on Desktop"
-      },
-      {
-        "src": "/van-gogh-assets/screenshot-mobile.png",
-        "sizes": "390x844",
-        "type": "image/png",
-        "form_factor": "narrow",
-        "label": "Van Gogh Digital Guide on Mobile"
-      }
     ]
 }
