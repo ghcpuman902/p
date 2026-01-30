@@ -16,9 +16,8 @@ module.exports = async (phase) => {
       minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
       qualities: [25, 50, 75, 100],
     },
-    // Optimize font loading to reduce preload warnings
     experimental: {
-      optimizePackageImports: ['@next/font'],
+      optimizePackageImports: ['lucide-react'],
     },
     // Enable service worker registration
     headers: async () => {

@@ -1,18 +1,10 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { getLocaleAssets } from './van-gogh/libs/getRooms'
 import { VanGoghNavigation } from './van-gogh/components/VanGoghNavigation'
 import { SUPPORTED_LOCALES, type Locale } from '@/app/(van-gogh)/van-gogh/libs/localization'
 import Script from 'next/script'
-
-const inter = Inter({ 
-  subsets: ['latin'],
-  display: 'swap',
-  preload: false,
-  fallback: ['system-ui', 'arial']
-})
 
 const APP_NAME = "Van Gogh Digital Guide";
 const APP_DEFAULT_TITLE = "Van Gogh Digital Guide";
@@ -96,7 +88,7 @@ export default async function VanGoghLayout({
   
   return (
     <html suppressHydrationWarning>
-      <body className={inter.className} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <Script id="register-sw" strategy="afterInteractive">
           {`
             // Service worker registration - now independent of layout data

@@ -42,3 +42,5 @@ next-env.d.ts
 # Service Worker (manual, not generated)
 # public/sw.js is manually created and should be committed
 certificates
+# next-agents-md
+.next-docs/

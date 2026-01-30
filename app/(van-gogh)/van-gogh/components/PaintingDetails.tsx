@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { Room, Painting } from '../libs/types';
 import { cn } from '@/lib/utils';
@@ -5,7 +6,7 @@ import { getTranslation, Locale } from '@/app/(van-gogh)/van-gogh/libs/localizat
 import { PaintingImage } from './PaintingImage';
 
 // Helper function to transform text
-function transformText(text: string, locale: Locale): JSX.Element[] {
+function transformText(text: string, locale: Locale): ReactNode[] {
   const parts = text.split(/(\n\n|\n|\*\*\*\*|\*\*|\(\d{1,2}\))/g);
   return parts.map((part, index) => {
     if (part === '\n\n') return <p key={index} className="leading-7 mt-6"></p>;

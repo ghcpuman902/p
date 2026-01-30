@@ -104,22 +104,9 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
     }
 
     const locale = getLocaleFromSegments(segments)
-    
-    // Add state to track the effective locale to prevent hydration mismatches
-    // Use a function to ensure consistent initial state between server and client
-    const [effectiveLocale, setEffectiveLocale] = useState<Locale>(() => {
-        // During SSR, use the locale from segments
-        // During client hydration, this will be the same value
-        return locale
-    })
-    
-    // Update effective locale when locale changes (only on client)
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            setEffectiveLocale(locale)
-        }
-    }, [locale])
-    
+    // Use locale directly; no derived state to avoid setState-in-effect
+    const effectiveLocale = locale
+
     // Memoize room options to prevent infinite re-renders
     const availableRoomOptions = useMemo(() => {
         const result = isOffline && serviceWorkerRoomData ? serviceWorkerRoomData : roomOptions
@@ -606,7 +593,7 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
             audio.addEventListener('error', handleError, { once: true });
             audio.addEventListener('loadeddata', handleLoadedData, { once: true });
         }
-    }, [currentLocale, currentPaintingId, currentRoomId, isOffline])
+    }, [effectiveLocale, currentPaintingId, currentRoomId, isOffline])
 
     // Simplified audio playback
     const playAudio = useCallback(async () => {
@@ -692,7 +679,8 @@ export function VanGoghNavigation({ roomOptions, children }: VanGoghNavigationPr
 
     // Effect for audio setup - use effective pathname
     useEffect(() => {
-        setAudioSource()
+        // Defer to avoid synchronous setState in effect (react-hooks/set-state-in-effect)
+        queueMicrotask(() => setAudioSource())
 
         // Update service worker with current position
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller && currentRoomId) {
